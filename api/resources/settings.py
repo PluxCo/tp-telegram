@@ -8,6 +8,11 @@ post_settings_parser = reqparse.RequestParser()
 post_settings_parser.add_argument("pin", type=str, required=False)
 post_settings_parser.add_argument("session_duration", type=float, required=False)
 post_settings_parser.add_argument("amount_of_questions", type=int, required=False)
+post_settings_parser.add_argument("time_period", type=float, required=False)
+post_settings_parser.add_argument("from_time", type=str, required=False)
+post_settings_parser.add_argument("to_time", type=str, required=False)
+post_settings_parser.add_argument("week_days", type=int, required=False, action="append")
+
 
 
 class SettingsResource(Resource):
