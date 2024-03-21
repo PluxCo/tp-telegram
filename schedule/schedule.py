@@ -5,12 +5,16 @@ import time
 from threading import Thread
 
 from requests import get
+from sqlalchemy import or_, and_, select
 
+from bot.bot import ping_message
+from bot.models.telegram_types import SessionState
 from models.db_session import create_session
-from models.user import User
+from models.message import Message
 from models.sessions import Session
+from models.user import User
 from tools import Settings
-from bot.bot import send_messages
+
 
 # FIXME: God rewrite this weird Schedule by using basic python module.
 
@@ -26,7 +30,6 @@ class Schedule(Thread):
         Settings().add_update_handler(self.from_settings)
 
         self.previous_call = None
-
 
     def from_settings(self):
         self._every = Settings()['time_period']
@@ -57,17 +60,28 @@ class Schedule(Thread):
             users_sessions = []
             with create_session() as db:
                 # getting new users without started sessions
-                people = db.query(User).where(User.tg_id.notin_(db.query(Session.user_tg_id))).all()
-                for person in people:
-                    # Requesting questions not ended
-                    webhook = ''
-                    request = get(webhook).json()
-                    webhook = request["webhook"]
-                    messages = request["messages"]
-                    session = Session(person)
-                    session.generate_questions()
-                    users_sessions.append(session)
-                    print(person)
+                new_people_db = db.query(User.auth_id).where(User.tg_id.notin_(db.query(Session.user_tg_id))).all()
+                people = new_people_db
+                closed_sessions_people_db = db.query(User.tg_id, User.auth_id).where(and_(User.tg_id.notin_(
+                    db.query(Session.user_tg_id).where(or_(Session.session_state == SessionState.OPEN.value,
+                                                           Session.session_state == SessionState.PENDING.value))),
+                    User.tg_id.in_(db.query(Session.user_tg_id)))).all()
+                for closed_person_tg_id, closed_person_auth_id in closed_sessions_people_db:
+                    last_session_time = db.scalar(
+                        select(Session.opening_time).where(Session.user_tg_id == closed_person_tg_id[0]).order_by(
+                            Session.opening_time.desc()))
+                    if (datetime.datetime.now() - last_session_time).total_seconds() >= self._every:
+                        people.append(closed_person_auth_id)
+                pending_users = db.query(Message.message_id, Message.tg_id).where(
+                    and_(Session.session_state == SessionState.PENDING.value, Message.session_id == Session.id)).all()
+
+                if pending_users:
+                    ping_message(pending_users)
+
+                # Requesting questions not ended
+                webhook = Settings()["webhook"]
+                request = get(webhook,
+                              data={"users_ids": people, "webhook": os.environ["TELEGRAM_API"] + "/message/"}).json()
 
         except Exception as e:
             logging.exception(e)

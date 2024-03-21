@@ -38,7 +38,7 @@ class Settings(dict):
             with open(filename, "w") as file:
                 json.dump(dict(), file)
 
-        with open(filename, "rb") as file:
+        with open(filename, "r") as file:
             self.update(json.load(file))
 
     def update_settings(self):

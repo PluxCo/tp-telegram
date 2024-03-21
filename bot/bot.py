@@ -2,24 +2,20 @@ import datetime
 import logging
 import os
 import random
-import asyncio
 from threading import Thread
 
-import requests
 import telebot
 from requests import post, get
 from sqlalchemy import select, or_
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, Message
 
-from bot.models.telegram_types import MessageType, AnswerType, Person, SessionState, SimpleMessage, MessageWithButtons, \
-    Motivation
 from bot.models.response_types import SessionInfo, MessageInfo, MessageResponse, Webhook, Reply, Button
-from bot.models.response_types import Message as AnswerMessageType
-
+from bot.models.telegram_types import MessageType, Person, SessionState, SimpleMessage, MessageWithButtons, \
+    Motivation
 from models.db_session import create_session
 from models.message import Message as MessageModel
-from models.user import User
 from models.sessions import Session
+from models.user import User
 from tools import Settings
 
 bot = telebot.TeleBot(os.environ["TG_TOKEN"])
@@ -375,6 +371,12 @@ def handling_button_answers(call: CallbackQuery):
 @bot.message_handler()
 def strange_messages(message: Message):
     bot.send_message(message.from_user.id, "я не знаю такой команды")
+
+
+def ping_message(pending_pairs: list):
+    for message_id, tg_id in pending_pairs:
+        bot.send_message(tg_id, "Йоу, ответь на вопрос!", reply_to_message_id=message_id)
+
 
 
 def start_bot():
