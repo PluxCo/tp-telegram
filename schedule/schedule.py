@@ -1,4 +1,5 @@
 import datetime
+import itertools
 import logging
 import os
 import time
@@ -32,10 +33,10 @@ class Schedule(Thread):
         self.previous_call = None
 
     def from_settings(self):
-        self._every = Settings()['time_period']
+        self._every = datetime.timedelta(seconds=Settings()['time_period'])
         self._week_days = Settings()['week_days']
-        self._from_time = Settings()['from_time']
-        self._to_time = Settings()['to_time']
+        self._from_time = datetime.time.fromisoformat(Settings()['from_time'])
+        self._to_time = datetime.time.fromisoformat(Settings()['to_time'])
 
         return self
 
@@ -67,10 +68,11 @@ class Schedule(Thread):
                                                            Session.session_state == SessionState.PENDING.value))),
                     User.tg_id.in_(db.query(Session.user_tg_id)))).all()
                 for closed_person_tg_id, closed_person_auth_id in closed_sessions_people_db:
+                    logging.debug(f"closed person id: {closed_person_auth_id} with type {type(closed_person_auth_id)}")
                     last_session_time = db.scalar(
-                        select(Session.opening_time).where(Session.user_tg_id == closed_person_tg_id[0]).order_by(
+                        select(Session.opening_time).where(Session.user_tg_id == closed_person_tg_id).order_by(
                             Session.opening_time.desc()))
-                    if (datetime.datetime.now() - last_session_time).total_seconds() >= self._every:
+                    if (datetime.datetime.now() - last_session_time) >= self._every:
                         people.append(closed_person_auth_id)
                 pending_users = db.query(Message.message_id, Message.tg_id).where(
                     and_(Session.session_state == SessionState.PENDING.value, Message.session_id == Session.id)).all()
@@ -78,10 +80,18 @@ class Schedule(Thread):
                 if pending_users:
                     ping_message(pending_users)
 
+                # people = list(itertools.chain(*people))
                 # Requesting questions not ended
+                for i in range(len(people)):
+                    # Damn...
+                    if not isinstance(people[i], str):
+                        people[i] = people[i][0]
+
+                logging.debug(f"users to send: {people}")
                 webhook = Settings()["webhook"]
-                request = get(webhook,
-                              data={"users_ids": people, "webhook": os.environ["TELEGRAM_API"] + "/message/"}).json()
+                body = {"users_ids": people, "webhook": os.environ["TELEGRAM_API"] + "/message/"}
+                logging.debug(f"Request to webhook: {body}")
+                get(webhook, json=body)
 
         except Exception as e:
             logging.exception(e)

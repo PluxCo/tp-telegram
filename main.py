@@ -12,18 +12,20 @@ default_settings = {
     "pin": "32266",
     "amount_of_questions": 10,
     "session_duration": datetime.timedelta(minutes=10).total_seconds(),
-    "time_period": datetime.timedelta(seconds=30),
-    "from_time": datetime.time(0),
-    "to_time": datetime.time(23, 59),
+    "time_period": datetime.timedelta(seconds=30).total_seconds(),
+    "from_time": datetime.time(0).isoformat(),
+    "to_time": datetime.time(23, 59).isoformat(),
     "week_days": [d for d in range(7)],
     "webhook": "https://7722bd2c-7def-4218-b9df-9b409b8cf34d.mock.pstmn.io/webhook"
 }
 # main_logger = setup_logger(__name__)
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.DEBUG)
 
 if __name__ == "__main__":
     # main_logger.info("initializing telegram service")
-    Settings().setup("data/settings.json", default_settings)
+    Settings().setup("data/settings.conf", default_settings)
+    Settings().update_settings()
+
     db_session.global_init("data/database.db")
     Schedule().from_settings().start()
 
