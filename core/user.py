@@ -8,4 +8,4 @@ class User(SqlAlchemyBase):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     tg_id: Mapped[int]
-    external_id: Mapped[str]
+    external_id: Mapped[str] = mapped_column(nullable=True)

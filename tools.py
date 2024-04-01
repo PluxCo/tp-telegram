@@ -1,0 +1,66 @@
+import logging
+
+from sqlalchemy import select
+from sqlalchemy.orm import Mapped, mapped_column
+
+from db_connector import SqlAlchemyBase, DBWorker
+from db_connector.types import TextJson
+
+logger = logging.getLogger(__name__)
+
+
+class SettingsRow(SqlAlchemyBase):
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(primary_key=True)
+    value = mapped_column(TextJson)
+
+
+class Settings:
+    __instance = None
+    __update_handlers = []
+    __session = None
+    __storage = {}
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = super(Settings, cls).__new__(cls)
+
+        return cls.__instance
+
+    @classmethod
+    def setup(cls, default_values: dict):
+        with DBWorker() as db:
+            for k, v in default_values.items():
+                actual_value = db.get(SettingsRow, k)
+                if actual_value is None:
+                    db.add(SettingsRow(key=k, value=v))
+
+            db.commit()
+
+        cls.__session = DBWorker().session
+        cls.__session.autoflush = True
+
+        for row in db.scalars(select(SettingsRow)):
+            cls.__storage[row.key] = row
+
+    def __getitem__(self, key):
+        return self.__storage[key].value
+
+    def __setitem__(self, key, value):
+        self.__storage[key].value = value
+        self.notify()
+
+    def update(self, data: dict):
+        for k, v in data.items():
+            self.__storage[k].value = v
+        self.notify()
+
+    @classmethod
+    def notify(cls):
+        for handler in cls.__update_handlers:
+            handler()
+
+    @classmethod
+    def add_update_handler(cls, handler):
+        cls.__update_handlers.append(handler)
