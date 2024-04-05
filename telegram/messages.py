@@ -19,6 +19,7 @@ class SimpleMessage(Message):
     def send(self) -> SendingStatus:
         tg_msg = bot.send_message(self.user.tg_id, text=self.text)
         self.date = datetime.fromtimestamp(tg_msg.date)
+        self.internal_id = tg_msg.id
 
         return SendingStatus(self, MessageState.TRANSFERRED)
 
@@ -35,6 +36,8 @@ class MessageWithButtons(SimpleMessage):
             markup.add(btn)
 
         tg_msg = bot.send_message(self.user.tg_id, text=self.text, reply_markup=markup)
-        logger.debug(f"sent message with buttons: {tg_msg}")
+
         self.date = datetime.fromtimestamp(tg_msg.date)
+        self.internal_id = tg_msg.id
+
         return SendingStatus(self, MessageState.TRANSFERRED)

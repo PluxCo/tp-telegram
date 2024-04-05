@@ -33,6 +33,8 @@ class Message(SqlAlchemyBase):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     user: Mapped[User] = relationship(lazy="joined")
 
+    internal_id: Mapped[int] = mapped_column(nullable=True)
+
     date: Mapped[datetime] = mapped_column(nullable=True)
 
     def send(self) -> SendingStatus:

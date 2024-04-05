@@ -9,8 +9,7 @@ from telegram.bot import bot
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("telegram").setLevel(logging.DEBUG)
 logging.getLogger("core").setLevel(logging.DEBUG)
-logging.getLogger("feedback_manager").setLevel(logging.DEBUG)
-logging.getLogger("commands").setLevel(logging.DEBUG)
+logging.getLogger("scenarios").setLevel(logging.DEBUG)
 
 DBWorker.init_db_file("sqlite:///data/database.db")
 

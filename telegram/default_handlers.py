@@ -5,11 +5,11 @@ from sqlalchemy import select
 from telebot.types import CallbackQuery
 from telebot.types import Message as TGMessage
 
-from core.feedbacks import MessageUserFeedback, ButtonUserFeedback
+from core.feedbacks import MessageUserFeedback, ButtonUserFeedback, ReplyUserFeedback
 from core.message import Message
 from core.user import User
 from db_connector import DBWorker
-from feedback_manager import RFM
+from scenarios.routing_manager import RFM
 
 from telegram.bot import bot
 
@@ -32,8 +32,7 @@ def main_handler(message: TGMessage):
 
     feedback = MessageUserFeedback(message.text, datetime.fromtimestamp(message.date), user)
 
-    handler = manager.get_handler(feedback)
-    handler.handle(feedback)
+    manager.handle(feedback)
 
 
 @bot.callback_query_handler(func=lambda query: True)
@@ -47,5 +46,4 @@ def btn_handler(callback_query: CallbackQuery):
 
     feedback = ButtonUserFeedback(message, datetime.now(), int(button_id))
 
-    handler = manager.get_handler(feedback)
-    handler.handle(feedback)
+    manager.handle(feedback)
