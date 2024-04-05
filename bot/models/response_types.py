@@ -51,7 +51,7 @@ class Reply(UserAnswer):
         self.type = AnswerType.REPLY.value
 
         self.text = text
-        self.message_id = message_id
+        self.message_id = reply_to
         self.reply_to = reply_to
 
 
