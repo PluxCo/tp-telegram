@@ -30,7 +30,14 @@ def main_handler(message: TGMessage):
             db.add(user)
             db.commit()
 
-    feedback = MessageUserFeedback(message.text, datetime.fromtimestamp(message.date), user)
+            user = db.scalar(select(User).where(User.tg_id == message.from_user.id))
+
+        if message.reply_to_message is not None:
+            dest_message = db.scalar(select(Message).where(Message.internal_id == message.reply_to_message.id))
+
+            feedback = ReplyUserFeedback(dest_message, datetime.fromtimestamp(message.date), message.text)
+        else:
+            feedback = MessageUserFeedback(message.text, datetime.fromtimestamp(message.date), user)
 
     manager.handle(feedback)
 

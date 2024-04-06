@@ -1,6 +1,6 @@
 import logging
 
-from core.feedbacks import UserFeedback
+from core.feedbacks import UserFeedback, ButtonUserFeedback, MessageUserFeedback, ReplyUserFeedback
 from scenarios.scr import BaseFrame, ScenarioContext
 from telegram.messages import MessageWithButtons, SimpleMessage
 from tools import Settings
@@ -19,6 +19,9 @@ class ConfirmStartFrame(BaseFrame):
         self.context.manager.link_frame(message, self)
 
     def handle(self, feedback: UserFeedback):
+        if not isinstance(feedback, ButtonUserFeedback):
+            return
+
         local_next = StartCreationFrame(self.context)
 
         self.context.change_state(local_next)
@@ -40,6 +43,9 @@ class PinConfirmationFrame(BaseFrame):
         self.context.manager.link_frame(message, self)
 
     def handle(self, feedback: UserFeedback):
+        if not isinstance(feedback, (MessageUserFeedback, ReplyUserFeedback)):
+            return
+
         if feedback.text != Settings()["password"]:
             local_next = BadPasswordFrame(self.context, self)
             self.context.change_state(local_next)
@@ -65,7 +71,7 @@ class BadPasswordFrame(BaseFrame):
 
 class GoodPasswordFrame(BaseFrame):
     def exec(self):
-        message = SimpleMessage(text="Отлично, можем продолжить (っ◔◡◔)っ ❤",
+        message = SimpleMessage(text="Отлично, можем продолжить (っ◔◡◔)っ❤",
                                 user=self.context.user)
 
         self.context.manager.link_frame(message, self)

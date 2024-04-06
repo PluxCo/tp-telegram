@@ -14,12 +14,13 @@ class SimpleContextManager(ScenarioContextManager):
 
         self.__snapshots: dict[int, ScenarioSnapshot] = {}
 
-    def link_frame(self, message: Message, frame: Frame):
+    def link_frame(self, message: Message, frame: Frame, repair_state: bool = False):
         with DBWorker() as db:
             db.add(message)
             db.flush()
 
-            self.__snapshots[message.id] = frame.context.create_snapshot()
+            if repair_state:
+                self.__snapshots[message.id] = frame.context.create_snapshot()
 
             logger.debug(f"Sending message: {message}")
             message.send()
@@ -31,7 +32,7 @@ class SimpleContextManager(ScenarioContextManager):
     def load_context(self, feedback: UserFeedback) -> ScenarioContext:
         context = self.__alive_contexts[feedback.user.id]
 
-        if feedback.message is not None:
+        if feedback.message is not None and feedback.message.id in self.__snapshots:
             context.load_snapshot(self.__snapshots[feedback.message.id])
 
         return context
