@@ -18,4 +18,4 @@ class SettingsResource(Resource):
         args = {k: v for k, v in post_settings_parser.parse_args().items() if v is not None and k in current_settings}
 
         current_settings.update(args)
-        return self.get(), 200
+        return self.get()

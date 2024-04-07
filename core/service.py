@@ -6,5 +6,5 @@ from db_connector import SqlAlchemyBase
 class Service(SqlAlchemyBase):
     __tablename__ = 'services'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     webhook: Mapped[str]

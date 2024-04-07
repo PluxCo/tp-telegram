@@ -17,12 +17,20 @@ class MessageState(enum.Enum):
 
 
 class SendingStatus:
-    def __init__(self, message: Message, state: MessageState):
-        self.message = message
+    def __init__(self, state: MessageState):
         self.state = state
 
 
 class Message(SqlAlchemyBase):
+    """
+    An abstract message
+
+    :cvar id: Index of message
+    :cvar user: User that should receive that message
+    :cvar service: Service which is a sender
+    :cvar internal_id: Telegram message id
+    :cvar date: Sending timestamp
+    """
     __tablename__ = 'messages'
     __mapper_args__ = {'polymorphic_identity': 'message', "polymorphic_on": "type"}
 
