@@ -14,7 +14,7 @@ class SimpleContextManager(ScenarioContextManager):
 
         self.__snapshots: dict[int, ScenarioSnapshot] = {}
 
-    def link_frame(self, message: Message, frame: Frame, repair_state: bool = False):
+    def link_frame(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
         with DBWorker() as db:
             db.add(message)
             db.flush()
@@ -25,6 +25,8 @@ class SimpleContextManager(ScenarioContextManager):
             logger.debug(f"Sending message: {message}")
             message.send()
             db.commit()
+
+            return message.id
 
     def turn_to(self, frame: Frame, is_root=False):
         pass

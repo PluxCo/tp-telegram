@@ -26,7 +26,7 @@ class Frame(abc.ABC):
 
 class ScenarioContextManager(abc.ABC):
     @abc.abstractmethod
-    def link_frame(self, message: Message, frame: Frame):
+    def link_frame(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
         pass
 
     @abc.abstractmethod

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from scenarios.context_managers import SimpleContextManager
-from scenarios.frames import ConfirmStartFrame, PinConfirmationFrame
+from scenarios.frames import ConfirmStartFrame, PinConfirmationFrame, UserCreationFrame
 from core.feedbacks import UserFeedback, UserFeedbackVisitor, ReplyUserFeedback, ButtonUserFeedback, MessageUserFeedback
 from core.message import Message
 from db_connector import DBWorker
@@ -28,8 +28,9 @@ class ScenariosSelector(UserFeedbackVisitor):
 
             start = ConfirmStartFrame(context)
             pin = PinConfirmationFrame(context)
+            user_creation = UserCreationFrame(context)
 
-            context.root_frames = [start, pin]
+            context.root_frames = [start, pin, user_creation]
 
             self.__context_manager.init_context(context)
 
