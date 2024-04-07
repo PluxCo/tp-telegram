@@ -51,6 +51,12 @@ class Settings:
         self.__storage[key].value = value
         self.notify()
 
+    def __contains__(self, item):
+        return item in self.__storage
+
+    def get_storage(self) -> dict:
+        return {key: self[key] for key in self.__storage}
+
     def update(self, data: dict):
         for k, v in data.items():
             self.__storage[k].value = v

@@ -5,9 +5,7 @@ import logging
 from scenarios.context_managers import SimpleContextManager
 from scenarios.frames import ConfirmStartFrame, PinConfirmationFrame, UserCreationFrame
 from core.feedbacks import UserFeedback, UserFeedbackVisitor, ReplyUserFeedback, ButtonUserFeedback, MessageUserFeedback
-from core.message import Message
-from db_connector import DBWorker
-from scenarios.scr import ScenarioContextManager, Frame, ScenarioContext, ScenarioSnapshot
+from scenarios.scr import ScenarioContext
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +45,7 @@ class RFM:
         feedback.accept(self.selector)
 
         context = self.__context_manager.load_context(feedback)
+
         logger.debug(f"Loaded context: {context}")
 
         context.handle(feedback)
