@@ -33,7 +33,7 @@ class SimpleMessage(Message):
         self.service = service
 
         self.text = text
-        
+
         super().__init__(**kw)
 
     def send(self) -> SendingStatus:
@@ -41,7 +41,8 @@ class SimpleMessage(Message):
         self.date = datetime.fromtimestamp(tg_msg.date)
         self.internal_id = tg_msg.id
 
-        return SendingStatus(MessageState.TRANSFERRED)
+        self._status = SendingStatus(MessageState.TRANSFERRED)
+        return self.status
 
 
 class MessageWithButtons(SimpleMessage):
@@ -60,4 +61,5 @@ class MessageWithButtons(SimpleMessage):
         self.date = datetime.fromtimestamp(tg_msg.date)
         self.internal_id = tg_msg.id
 
-        return SendingStatus(MessageState.TRANSFERRED)
+        self._status = SendingStatus(MessageState.TRANSFERRED)
+        return self.status

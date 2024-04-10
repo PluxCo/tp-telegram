@@ -14,7 +14,7 @@ class ConfirmStartFrame(BaseFrame):
         message = MessageWithButtons(text="Добро пожаловать в бота компании 3DiVi! Я здесь, чтобы "
                                           "помочь вам оценить и развить ваши профессиональные навыки. "
                                           "Пройдите тесты, получите обратную связь и станьте еще более "
-                                          "квалифицированным специалистом. Начнем?\n(✿◠‿◠) ",
+                                          "квалифицированным специалистом. Начнем?\n(✿◠‿◠)",
                                      user=self.context.user, buttons=["Поехали!"])
 
         self.context.manager.link_frame(message, self)

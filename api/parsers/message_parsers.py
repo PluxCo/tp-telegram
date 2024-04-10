@@ -42,7 +42,15 @@ class MessageCreator:
                 parsed_text = data["text"]
                 parsed_buttons = data["buttons"]
 
-                return MessageWithButtons(user=user, text=parsed_text, buttons=parsed_buttons)
+                return MessageWithButtons(user=user, text=parsed_text, service=self.__service, buttons=parsed_buttons)
 
             case MessageType.MOTIVATION:
                 parsed_mood = Mood[data["mood"]]
+
+
+class StatusSerializer:
+    def dump_status(self, message: Message):
+        return {
+            "message_id": message.id,
+            "state": message.status.state.name
+        }

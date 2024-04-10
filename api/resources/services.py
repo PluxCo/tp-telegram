@@ -2,7 +2,7 @@ import flask
 from flask_restful import Resource, reqparse
 from sqlalchemy import select
 
-from api.parsers.service_parser import ServiceSerializer, ServiceCreator
+from api.parsers.service_parsers import ServiceSerializer, ServiceCreator
 from core.service import Service
 from db_connector import DBWorker
 from tools import Settings

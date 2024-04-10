@@ -1,5 +1,7 @@
 import logging
+from typing import Optional
 
+from api.senders import ServiceFrame
 from core.feedbacks import UserFeedback
 from core.message import Message
 from db_connector import DBWorker
@@ -16,6 +18,7 @@ class SimpleContextManager(ScenarioContextManager):
 
     def link_frame(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
         with DBWorker() as db:
+            message = db.merge(message)
             db.add(message)
             db.flush()
 
@@ -31,11 +34,22 @@ class SimpleContextManager(ScenarioContextManager):
     def turn_to(self, frame: Frame, is_root=False):
         pass
 
-    def load_context(self, feedback: UserFeedback) -> ScenarioContext:
-        context = self.__alive_contexts[feedback.user.id]
+    def load_context(self, feedback: UserFeedback) -> Optional[ScenarioContext]:
+        context = self.__alive_contexts.get(feedback.user.id)
 
-        if feedback.message is not None and feedback.message.id in self.__snapshots:
+        if context is None and feedback.message.service is not None:
+            ctx = ScenarioContext(feedback.user, self)
+            ctx.root_frames = [ServiceFrame(ctx, feedback.message)]
+            ctx.change_state(execute=False)
+
+            logger.debug(f"Loaded api context: {ctx}")
+
+            return ctx
+
+        if context is not None and feedback.message is not None and feedback.message.id in self.__snapshots:
             context.load_snapshot(self.__snapshots[feedback.message.id])
+
+        logger.debug(f"Loaded hardcode context: {context}")
 
         return context
 

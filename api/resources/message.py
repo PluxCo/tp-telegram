@@ -2,9 +2,15 @@ import flask
 from flask_restful import Resource, reqparse
 from sqlalchemy import select
 
-from api.parsers.message_parsers import MessageCreator
+from api.parsers.feedback_parsers import FeedbackSerializer
+from api.parsers.message_parsers import MessageCreator, StatusSerializer
+from api.senders import ServiceFrame
+from core.feedbacks import UserFeedback
+from core.message import Message
 from core.service import Service
 from db_connector import DBWorker
+from scenarios.routing_manager import simple_manager
+from scenarios.scr import BaseFrame, ScenarioContext
 
 
 class MessageResource(Resource):
@@ -14,27 +20,19 @@ class MessageResource(Resource):
         parsed_messages = args["messages"]
         parsed_service_id = args["service_id"]
 
-        sent_messages = []
-
         with DBWorker() as db:
             service = db.get(Service, parsed_service_id)
             creator = MessageCreator(service)
 
-            messages = []
-            for m in parsed_messages:
-                messages.append(creator.create_message(m, db))
+            sent_messages = []
 
-            db.add_all(messages)
-            db.flush()
+            for parsed_message in parsed_messages:
+                message = creator.create_message(parsed_message, db)
 
-            for current_message in messages:
-                status = current_message.send()
+                context = ScenarioContext(message.user, simple_manager)
+                context.root_frames = [ServiceFrame(context, message)]
+                context.start()
 
-                sent_messages.append({
-                    "message_id": current_message.id,
-                    "state": status.state.name
-                })
-
-            db.commit()
+                sent_messages.append(StatusSerializer().dump_status(message))
 
         return {"sent_messages": sent_messages}, 200

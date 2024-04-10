@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
+from typing import Optional, Any
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, relationship, mapped_column
@@ -45,6 +46,15 @@ class Message(SqlAlchemyBase):
     internal_id: Mapped[int] = mapped_column(nullable=True)
 
     date: Mapped[datetime] = mapped_column(nullable=True)
+
+    def __init__(self, **kw: Any):
+        super().__init__(**kw)
+
+        self._status = None
+
+    @property
+    def status(self) -> SendingStatus:
+        return self._status
 
     def send(self) -> SendingStatus:
         raise NotImplemented("Method should be implemented")

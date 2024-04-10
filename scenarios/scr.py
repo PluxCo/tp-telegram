@@ -42,11 +42,11 @@ class ScenarioSnapshot:
 
 class ScenarioContext:
     # Внебрачный сын тайской шлюхи (машины состояний, команды, цепочки обязанностей, наблюдателя и снапшота).
-    def __init__(self, user: User, context_manager: ScenarioContextManager):
+    def __init__(self, user: User, context_manager: ScenarioContextManager, start: Frame = None):
         self.__user = user
         self.__context_manager = context_manager
 
-        self.__frame = BaseFrame(self)
+        self.__frame = BaseFrame(self) if start is None else start
 
         self.root_frames = []
         self.__current_root_idx = 0
@@ -61,6 +61,9 @@ class ScenarioContext:
 
     def handle(self, feedback: UserFeedback):
         self.__frame.handle(feedback)
+
+    def start(self):
+        self.__frame.exec()
 
     def change_state(self, next_frame: Optional[Frame] = None, execute: bool = True):
         """Switch to next_frame. If that not given then takes it from root_frames_queue"""

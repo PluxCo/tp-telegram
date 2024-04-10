@@ -9,6 +9,8 @@ from scenarios.scr import ScenarioContext
 
 logger = logging.getLogger(__name__)
 
+simple_manager = SimpleContextManager()
+
 
 class ScenariosSelector(UserFeedbackVisitor):
     def __init__(self, context_manager: SimpleContextManager):
@@ -37,15 +39,13 @@ class ScenariosSelector(UserFeedbackVisitor):
 
 class RFM:
     def __init__(self):
-        self.__context_manager = SimpleContextManager()
+        self.__simple_manager = simple_manager
 
-        self.selector = ScenariosSelector(self.__context_manager)
+        self.selector = ScenariosSelector(self.__simple_manager)
 
     def handle(self, feedback: UserFeedback):
         feedback.accept(self.selector)
 
-        context = self.__context_manager.load_context(feedback)
-
-        logger.debug(f"Loaded context: {context}")
+        context = self.__simple_manager.load_context(feedback)
 
         context.handle(feedback)
