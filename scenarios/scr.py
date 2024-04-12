@@ -52,11 +52,11 @@ class ScenarioContext:
         self.__current_root_idx = 0
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.__user
 
     @property
-    def manager(self):
+    def manager(self) -> ScenarioContextManager:
         return self.__context_manager
 
     def handle(self, feedback: UserFeedback):

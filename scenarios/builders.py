@@ -20,7 +20,7 @@ class UserBuilder:
         self.__fusion_token = os.getenv("FUSIONAUTH_TOKEN")
         self.__fusion_domain = os.getenv("FUSIONAUTH_DOMAIN")
 
-    def available_groups(self):
+    def available_groups(self) -> list[tuple[str, str]]:
         groups = requests.get(self.__fusion_domain + "/api/group",
                               headers={"Authorization": self.__fusion_token}).json()
         return [(g["id"], g["name"]) for g in groups["groups"]]
@@ -54,7 +54,7 @@ class UserBuilder:
                                                                    "level": g_level})
 
             logger.debug(f"Creating user in fusionauth {person_info}")
-            
+
             creation_resp = requests.post(self.__fusion_domain + "/api/user",
                                           headers={"Authorization": self.__fusion_token},
                                           json=person_info)

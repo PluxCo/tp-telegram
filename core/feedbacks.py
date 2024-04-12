@@ -35,7 +35,7 @@ class ButtonUserFeedback(UserFeedback):
         visitor.visit_button(self)
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.__message.user
 
     @property
@@ -53,7 +53,7 @@ class ReplyUserFeedback(UserFeedback):
         visitor.visit_reply(self)
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.__message.user
 
     @property
@@ -71,7 +71,7 @@ class MessageUserFeedback(UserFeedback):
         visitor.visit_message(self)
 
     @property
-    def user(self):
+    def user(self) -> User:
         return self.__user
 
     @property
