@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy.orm import Mapped, mapped_column
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from core.message import Message, SendingStatus, MessageState
+from core.message import Message, MessageState
 from core.service import Service
 from core.user import User
 from db_connector.types import TextJson
@@ -36,13 +36,12 @@ class SimpleMessage(Message):
 
         super().__init__(**kw)
 
-    def send(self) -> SendingStatus:
+    def send(self):
         tg_msg = bot.send_message(self.user.tg_id, text=self.text)
         self.date = datetime.fromtimestamp(tg_msg.date)
         self.internal_id = tg_msg.id
 
-        self._status = SendingStatus(MessageState.TRANSFERRED)
-        return self.status
+        self.state = MessageState.TRANSFERRED
 
 
 class MessageWithButtons(SimpleMessage):
@@ -50,7 +49,7 @@ class MessageWithButtons(SimpleMessage):
 
     buttons = mapped_column(TextJson, nullable=True)
 
-    def send(self) -> SendingStatus:
+    def send(self):
         markup = InlineKeyboardMarkup()
         for i, btn in enumerate(self.buttons):
             btn = InlineKeyboardButton(btn, callback_data=f"btn_{self.id}_{i}")
@@ -61,5 +60,4 @@ class MessageWithButtons(SimpleMessage):
         self.date = datetime.fromtimestamp(tg_msg.date)
         self.internal_id = tg_msg.id
 
-        self._status = SendingStatus(MessageState.TRANSFERRED)
-        return self.status
+        self.state = MessageState.TRANSFERRED

@@ -28,10 +28,14 @@ class MessageResource(Resource):
 
             for parsed_message in parsed_messages:
                 message = creator.create_message(parsed_message, db)
+                db.add(message)
+                db.commit()
 
                 context = ScenarioContext(message.user, simple_manager)
                 context.root_frames = [ServiceFrame(context, message)]
                 context.start()
+
+                db.commit()
 
                 sent_messages.append(StatusSerializer().dump_status(message))
 

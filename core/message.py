@@ -17,11 +17,6 @@ class MessageState(enum.Enum):
     PENDING = 2
 
 
-class SendingStatus:
-    def __init__(self, state: MessageState):
-        self.state = state
-
-
 class Message(SqlAlchemyBase):
     """
     An abstract message
@@ -46,15 +41,7 @@ class Message(SqlAlchemyBase):
     internal_id: Mapped[int] = mapped_column(nullable=True)
 
     date: Mapped[datetime] = mapped_column(nullable=True)
+    state: Mapped[MessageState] = mapped_column(default=MessageState.PENDING)
 
-    def __init__(self, **kw: Any):
-        super().__init__(**kw)
-
-        self._status = None
-
-    @property
-    def status(self) -> SendingStatus:
-        return self._status
-
-    def send(self) -> SendingStatus:
+    def send(self):
         raise NotImplemented("Method should be implemented")

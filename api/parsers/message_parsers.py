@@ -52,5 +52,5 @@ class StatusSerializer:
     def dump_status(self, message: Message):
         return {
             "message_id": message.id,
-            "state": message.status.state.name
+            "state": message.state.name
         }
