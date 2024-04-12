@@ -1,54 +1,72 @@
-import json
-import os
-import sys
 import logging
 
+from sqlalchemy import select
+from sqlalchemy.orm import Mapped, mapped_column
 
-def setup_logger(name, formatter=logging.Formatter('%(name)s: %(asctime)s %(levelname)s %(message)s'), stream=sys.stdout,
-                 level=logging.INFO):
-    """To setup as many loggers as you want"""
+from db_connector import SqlAlchemyBase, DBWorker
+from db_connector.types import TextJson
 
-    handler = logging.StreamHandler(stream)
-    handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(handler)
-
-    return logger
+logger = logging.getLogger(__name__)
 
 
-class Settings(dict):
-    def __init__(self):
-        super().__init__()
+class SettingsRow(SqlAlchemyBase):
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(primary_key=True)
+    value = mapped_column(TextJson)
+
+
+class Settings:
+    __instance = None
+    __update_handlers = []
+    __session = None
+    __storage = {}
 
     def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Settings, cls).__new__(cls)
-        return cls.instance
+        if cls.__instance is None:
+            cls.__instance = super(Settings, cls).__new__(cls)
 
-    def setup(self, filename, default_values: dict):
-        self.file = filename
-        self._update_handlers = []
+        return cls.__instance
 
-        for k, v in default_values.items():
-            self.setdefault(k, v)
+    @classmethod
+    def setup(cls, default_values: dict):
+        with DBWorker() as db:
+            for k, v in default_values.items():
+                actual_value = db.get(SettingsRow, k)
+                if actual_value is None:
+                    db.add(SettingsRow(key=k, value=v))
 
-        if not os.path.exists(filename):
-            with open(filename, "w") as file:
-                json.dump(dict(), file)
+            db.commit()
 
-        with open(filename, "r") as file:
-            self.update(json.load(file))
+        cls.__session = DBWorker().session
+        cls.__session.autoflush = True
 
-    def update_settings(self):
-        with open(self.file, "w") as file:
-            json.dump(self.copy(), file)
-        for handler in self._update_handlers:
+        for row in db.scalars(select(SettingsRow)):
+            cls.__storage[row.key] = row
+
+    def __getitem__(self, key):
+        return self.__storage[key].value
+
+    def __setitem__(self, key, value):
+        self.__storage[key].value = value
+        self.notify()
+
+    def __contains__(self, item):
+        return item in self.__storage
+
+    def get_storage(self) -> dict:
+        return {key: self[key] for key in self.__storage}
+
+    def update(self, data: dict):
+        for k, v in data.items():
+            self.__storage[k].value = v
+        self.notify()
+
+    @classmethod
+    def notify(cls):
+        for handler in cls.__update_handlers:
             handler()
 
-    def add_update_handler(self, handler):
-        if hasattr(self, "_update_handlers"):
-            self._update_handlers.append(handler)
-        else:
-            self._update_handlers = [handler]
+    @classmethod
+    def add_update_handler(cls, handler):
+        cls.__update_handlers.append(handler)

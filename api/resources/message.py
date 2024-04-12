@@ -1,21 +1,42 @@
-from bot.models.telegram_types import Message
-
+import flask
 from flask_restful import Resource, reqparse
+from sqlalchemy import select
 
-from bot.bot import send_messages
-import json
-
-post_message_parser = reqparse.RequestParser()
-post_message_parser.add_argument('messages', type=dict, required=True, action='append')
-post_message_parser.add_argument('webhook', type=str, required=True)
+from api.parsers.feedback_parsers import FeedbackSerializer
+from api.parsers.message_parsers import MessageCreator, StatusSerializer
+from api.senders import ServiceFrame
+from core.feedbacks import UserFeedback
+from core.message import Message
+from core.service import Service
+from db_connector import DBWorker
+from scenarios.routing_manager import simple_manager
+from scenarios.scr import BaseFrame, ScenarioContext
 
 
 class MessageResource(Resource):
     def post(self):
-        args = post_message_parser.parse_args()
-        messages = args["messages"]
-        webhook = args["webhook"]
+        args = flask.request.json
 
-        return json.loads(json.dumps(send_messages(messages, webhook), default=lambda o: o.__dict__)), 200
+        parsed_messages = args["messages"]
+        parsed_service_id = args["service_id"]
 
+        with DBWorker() as db:
+            service = db.get(Service, parsed_service_id)
+            creator = MessageCreator(service)
 
+            sent_messages = []
+
+            for parsed_message in parsed_messages:
+                message = creator.create_message(parsed_message, db)
+                db.add(message)
+                db.commit()
+
+                context = ScenarioContext(message.user, simple_manager)
+                context.root_frames = [ServiceFrame(context, message)]
+                context.start()
+
+                db.commit()
+
+                sent_messages.append(StatusSerializer().dump_status(message))
+
+        return {"sent_messages": sent_messages}, 200
