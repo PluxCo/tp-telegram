@@ -7,6 +7,7 @@ from api.senders import ApiSessionCreationNotifier
 from core.sessions.aggregation import SessionAggregator
 from core.sessions.events import SessionEventManager, SessionEventType
 from planner.startegy_impl import SimpleWindowSessionStrategy
+from scenarios.routing_manager import session_manager
 from tools import Settings
 from db_connector import DBWorker
 
@@ -49,6 +50,8 @@ def schedule_poll():
         except Exception:
             logging.exception(f"Main schedule exception")
 
+
+session_manager.update_settings()
 
 logging.info("Starting polling")
 

@@ -53,9 +53,15 @@ class SimpleWindowSessionStrategy(InitSessionStrategy):
 
 
 class SessionManager:
-    def __init__(self, messages_count: int, time_limit: timedelta):
-        self.__messages_count = messages_count
-        self.__time_limit = time_limit
+    def __init__(self):
+        self.__messages_count: int = ...
+        self.__time_limit: timedelta = ...
+
+        Settings().add_update_handler(self.update_settings)
+
+    def update_settings(self):
+        self.__messages_count = Settings()["amount_of_questions"]
+        self.__time_limit = Settings()["session_duration"]
 
     def is_neccessary_to_close(self, session: Session) -> bool:
         with DBWorker() as db:

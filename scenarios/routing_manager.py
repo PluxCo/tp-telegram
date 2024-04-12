@@ -16,7 +16,7 @@ from scenarios.scr import ScenarioContext
 logger = logging.getLogger(__name__)
 
 simple_manager = SimpleContextManager()
-session_manager = SessionManager(3, datetime.timedelta(minutes=10))
+session_manager = SessionManager()
 
 
 class ScenariosSelector(UserFeedbackVisitor):

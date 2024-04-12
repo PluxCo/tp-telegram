@@ -1,3 +1,5 @@
+import logging
+
 import flask
 from flask_restful import Resource, reqparse
 from sqlalchemy import select
@@ -6,6 +8,8 @@ from api.parsers.service_parsers import ServiceSerializer, ServiceCreator
 from core.service import Service
 from db_connector import DBWorker
 from tools import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceUnboundResource(Resource):
@@ -33,7 +37,9 @@ class ServiceBoundResource(Resource):
     def delete(self, s_id):
         with DBWorker() as db:
             service = db.get(Service, s_id)
+
+            logger.debug(f"Deleting service {service}")
             db.delete(service)
             db.commit()
 
-        return "", 200
+        return {}, 200
