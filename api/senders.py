@@ -1,4 +1,5 @@
 import enum
+import logging
 
 import requests
 from sqlalchemy import select
@@ -11,6 +12,8 @@ from core.sessions.events import EventListener
 from core.sessions.session import Session
 from db_connector import DBWorker
 from scenarios.scr import Frame, BaseFrame, ScenarioContext
+
+logger = logging.getLogger(__name__)
 
 
 class WebhhokEventType(enum.Enum):
@@ -59,6 +62,8 @@ class ApiSessionCreationNotifier(EventListener):
             "type": WebhhokEventType.SESSION.name,
             "session": session_data
         }
+
+        logger.debug(f"Sending session event: {session_data}")
 
         wh = sender.service.webhook
         requests.post(wh, json=total_data)

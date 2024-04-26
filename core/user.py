@@ -11,3 +11,6 @@ class User(SqlAlchemyBase):
     external_id: Mapped[str] = mapped_column(nullable=True)
 
     name: Mapped[str] = mapped_column(nullable=True)
+
+    def __repr__(self):
+        return f"User('{self.name}', '{self.tg_id}', '{self.external_id}')"

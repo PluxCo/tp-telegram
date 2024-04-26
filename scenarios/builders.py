@@ -62,4 +62,8 @@ class UserBuilder:
             creation_data = creation_resp.json()
             user.external_id = creation_data["user"]["id"]
 
+            logger.debug(f"Committing user {user} with fusionauth {creation_data}")
+
             db.commit()
+
+            return user
