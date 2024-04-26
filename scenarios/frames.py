@@ -161,11 +161,11 @@ class UserCreationEndFrame(BaseFrame):
         self.__builder = builder
 
     def exec(self):
-        self.__builder.create_user()
+        user = self.__builder.create_user()
 
         message = SimpleMessage(text="Рады сообщить, что ты успешно зарегистрирован(а) в нашем боте. "
                                      "Добро пожаловать! 🚀",
-                                user=self.context.user)
+                                user=user)
 
         self.context.manager.link_frame(message, self)
         self.context.change_state()
