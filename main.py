@@ -60,4 +60,4 @@ bot_th.start()
 schedule_th = Thread(target=schedule_poll, daemon=True)
 schedule_th.start()
 
-api_app.run("0.0.0.0", port=3001, debug=False)
+api_app.run("0.0.0.0", port=3000, debug=False)
