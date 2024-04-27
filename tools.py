@@ -1,7 +1,8 @@
 import logging
+from logging import Logger
 
 from sqlalchemy import select
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, Session
 
 from db_connector import SqlAlchemyBase, DBWorker
 from db_connector.types import TextJson
@@ -19,7 +20,7 @@ class SettingsRow(SqlAlchemyBase):
 class Settings:
     __instance = None
     __update_handlers = []
-    __session = None
+    __session: Session = ...
     __storage = {}
 
     def __new__(cls):
@@ -39,9 +40,8 @@ class Settings:
             db.commit()
 
         cls.__session = DBWorker().session
-        cls.__session.autoflush = True
 
-        for row in db.scalars(select(SettingsRow)):
+        for row in cls.__session.scalars(select(SettingsRow)):
             cls.__storage[row.key] = row
 
     def __getitem__(self, key):
@@ -64,6 +64,8 @@ class Settings:
 
     @classmethod
     def notify(cls):
+        logger.info("Updating settings")
+        cls.__session.commit()
         for handler in cls.__update_handlers:
             handler()
 

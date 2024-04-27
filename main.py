@@ -6,7 +6,6 @@ from time import sleep
 from api.senders import ApiSessionCreationNotifier
 from core.sessions.aggregation import SessionAggregator
 from core.sessions.events import SessionEventManager, SessionEventType
-from planner.startegy_impl import SimpleWindowSessionStrategy
 from scenarios.routing_manager import session_manager
 from tools import Settings
 from db_connector import DBWorker
@@ -20,6 +19,8 @@ logging.getLogger("telegram").setLevel(logging.DEBUG)
 logging.getLogger("core").setLevel(logging.DEBUG)
 logging.getLogger("scenarios").setLevel(logging.DEBUG)
 logging.getLogger("planner").setLevel(logging.DEBUG)
+logging.getLogger("api").setLevel(logging.DEBUG)
+logging.getLogger("tools").setLevel(logging.DEBUG)
 
 DBWorker.init_db_file("sqlite:///data/database.db?check_same_thread=False")
 
@@ -36,9 +37,7 @@ api_session_creation_notifier = ApiSessionCreationNotifier()
 session_event_manager = SessionEventManager()
 session_event_manager.subscribe(api_session_creation_notifier, SessionEventType.SESSION_CREATED)
 
-session_strategy = SimpleWindowSessionStrategy()
-
-session_aggregator = SessionAggregator(session_strategy, session_event_manager)
+session_aggregator = SessionAggregator(session_event_manager)
 
 
 def schedule_poll():

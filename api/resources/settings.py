@@ -4,8 +4,11 @@ from tools import Settings
 
 post_settings_parser = reqparse.RequestParser()
 post_settings_parser.add_argument("password", type=str, required=False)
-post_settings_parser.add_argument("amount_of_questions", type=str, required=False)
-post_settings_parser.add_argument("session_duration", type=str, required=False)
+post_settings_parser.add_argument("amount_of_questions", type=int, required=False)
+post_settings_parser.add_argument("session_duration", type=int, required=False)
+post_settings_parser.add_argument("period", type=int, required=False)
+post_settings_parser.add_argument("start_time", type=str, required=False)
+post_settings_parser.add_argument("end_time", type=str, required=False)
 
 
 class SettingsResource(Resource):
