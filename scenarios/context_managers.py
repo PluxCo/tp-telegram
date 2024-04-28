@@ -37,7 +37,7 @@ class SimpleContextManager(ScenarioContextManager):
     def load_context(self, feedback: UserFeedback) -> Optional[ScenarioContext]:
         context = self.__alive_contexts.get(feedback.user.id)
 
-        if context is None and feedback.message.service is not None:
+        if feedback.message is not None and feedback.message.service is not None:
             ctx = ScenarioContext(feedback.user, self)
             ctx.root_frames = [ServiceFrame(ctx, feedback.message)]
             ctx.change_state(execute=False)
