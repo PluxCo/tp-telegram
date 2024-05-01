@@ -36,3 +36,8 @@ class SimpleMessageModel(MessageModel):
 class MessageWithButtonsModel(MessageModel):
     text: str
     buttons: list[str]
+
+
+@dataclass(kw_only=True)
+class MotivationMessageModel(MessageModel):
+    mood: str

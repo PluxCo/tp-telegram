@@ -7,6 +7,7 @@ from time import sleep
 from adapter.api.http.send_message_view import MessageView
 from adapter.api.tg import register_feedback_adapter
 from adapter.spi.repository.feedback_repositry import FeedbackRepository
+from adapter.spi.repository.imgur_gif_finder import ImgurGifFinder
 from adapter.spi.repository.message_repository import DbMessageRepository
 from adapter.spi.repository.message_sender import TgMessageSender
 from adapter.spi.repository.user_repository import DbUserRepository
@@ -55,7 +56,9 @@ usr_rep = DbUserRepository()
 fb_rep = FeedbackRepository()
 manager = RFM()
 
-message_service = MessageService(msg_rep, msg_rep, msg_sender, usr_rep)
+gif_finder = ImgurGifFinder(os.getenv("IMGUR_CLIENT_ID"))
+
+message_service = MessageService(msg_rep, msg_rep, msg_sender, usr_rep, gif_finder)
 feedback_service = RegisterFeedbackService(usr_rep, msg_sender, fb_rep, manager)
 
 MessageView.set_service(message_service)

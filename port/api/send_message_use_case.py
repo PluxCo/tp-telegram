@@ -20,6 +20,11 @@ class SendMessageWithButtonsCommand(SendMessageCommand):
     buttons: list[str]
 
 
+@dataclass(kw_only=True)
+class SendMotivationMessageCommand(SendMessageCommand):
+    mood: str
+
+
 class MessageStatus(enum.Enum):
     SENT = 0
     PENDING = 1
@@ -39,4 +44,8 @@ class SendMessageUseCase(ABC):
 
     @abstractmethod
     def send_message_with_buttons(self, command: SendMessageWithButtonsCommand) -> SendMessageResult:
+        pass
+
+    @abstractmethod
+    def send_motivation_message(self, command: SendMotivationMessageCommand) -> SendMessageResult:
         pass
