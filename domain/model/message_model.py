@@ -41,3 +41,9 @@ class MessageWithButtonsModel(MessageModel):
 @dataclass(kw_only=True)
 class MotivationMessageModel(MessageModel):
     mood: str
+
+
+@dataclass(kw_only=True)
+class ReplyMessageModel(MessageModel):
+    text: str
+    reply_to: int

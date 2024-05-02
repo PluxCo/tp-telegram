@@ -5,7 +5,7 @@ from core.message import Message, MessageState as EntityMessageState
 from core.user import User
 from db_connector import DBWorker
 from domain.model.message_model import SimpleMessageModel, MessageModel, MessageState, MessageWithButtonsModel, \
-    MotivationMessageModel
+    MotivationMessageModel, ReplyMessageModel
 from domain.model.user_model import UserModel
 from port.spi.message_port import SendMessagePort, GetMessageByInChatIdPort
 from telegram.bot import bot
@@ -45,6 +45,18 @@ class TgMessageSender(SendMessagePort, GetMessageByInChatIdPort):
             real_user_id = db.get(User, message.user.id).tg_id
 
             sent_msg = bot.send_video(real_user_id, file_url)
+
+            entity_message = db.get(Message, message.id)
+            entity_message.internal_id = sent_msg.id
+
+            db.commit()
+
+    def send_reply_message(self, message: ReplyMessageModel):
+        with DBWorker() as db:
+            real_user_id = db.get(User, message.user.id).tg_id
+            reply_to_id = db.get(Message, message.reply_to).internal_id
+
+            sent_msg = bot.send_message(real_user_id, message.text, reply_to_message_id=reply_to_id)
 
             entity_message = db.get(Message, message.id)
             entity_message.internal_id = sent_msg.id

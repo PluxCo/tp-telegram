@@ -2,7 +2,7 @@ import flask
 from flask_restful import Resource
 
 from port.api.send_message_use_case import SendMessageUseCase, SendSimpleMessageCommand, SendMessageResult, \
-    SendMessageWithButtonsCommand, SendMotivationMessageCommand
+    SendMessageWithButtonsCommand, SendMotivationMessageCommand, SendReplyMessageCommand
 
 
 class MessageView(Resource):
@@ -35,10 +35,14 @@ class MessageView(Resource):
                     res = self._send_message_use_case.send_motivation_message(
                         self.__read_command(parsed_message, parsed_service_id)
                     )
+                case "REPLY":
+                    res = self._send_message_use_case.send_reply_message(
+                        self.__read_command(parsed_message, parsed_service_id)
+                    )
 
             sent_messages.append(self.__build_response(res))
 
-        return sent_messages, 200
+        return {"sent_messages": sent_messages}, 200
 
     def __read_command(self, data: dict, service_id: int):
         match data["type"]:
@@ -55,6 +59,11 @@ class MessageView(Resource):
                 return SendMotivationMessageCommand(user_id=data["user_id"],
                                                     service_id=service_id,
                                                     mood=data["mood"])
+            case "REPLY":
+                return SendReplyMessageCommand(user_id=data["user_id"],
+                                               service_id=service_id,
+                                               text=data["text"],
+                                               reply_to=data["reply_to"])
 
     def __build_response(self, res: SendMessageResult):
         return {"message_id": res.message_id, "status": res.status.name}

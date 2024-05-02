@@ -1,9 +1,9 @@
 from sqlalchemy import update
 
-from adapter.spi.entity.message_entity import MotivationMessageEntity
+from adapter.spi.entity.message_entity import MotivationMessageEntity, ReplyMessageEntity
 from db_connector import DBWorker
 from domain.model.message_model import SimpleMessageModel, MessageState, MessageModel, MessageWithButtonsModel, \
-    MotivationMessageModel
+    MotivationMessageModel, ReplyMessageModel
 from domain.model.user_model import UserModel
 from port.spi.message_port import CreateMessagePort, SaveMessagePort, GetMessageByInChatIdPort
 from telegram.messages import SimpleMessage, MessageWithButtons
@@ -60,6 +60,24 @@ class DbMessageRepository(CreateMessagePort, SaveMessagePort):
     def save_motivation_message(self, message: MotivationMessageModel):
         with DBWorker() as db:
             m = db.get(MotivationMessageEntity, message.id)
+
+            m.state = EntityMessageState.TRANSFERRED if message.state == MessageState.SENT else EntityMessageState.PENDING
+            m.date = message.date
+
+            db.commit()
+
+    def create_reply_message(self, user: UserModel, service_id, text, reply_to) -> ReplyMessageModel:
+        with DBWorker() as db:
+            m = ReplyMessageEntity(user_id=user.id, service_id=service_id, reply_text=text, reply_to=reply_to)
+
+            db.add(m)
+            db.commit()
+
+            return m.to_model(user)
+
+    def save_reply_message(self, message: ReplyMessageModel):
+        with DBWorker() as db:
+            m = db.get(ReplyMessageEntity, message.id)
 
             m.state = EntityMessageState.TRANSFERRED if message.state == MessageState.SENT else EntityMessageState.PENDING
             m.date = message.date

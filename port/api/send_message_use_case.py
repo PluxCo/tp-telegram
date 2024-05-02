@@ -25,6 +25,12 @@ class SendMotivationMessageCommand(SendMessageCommand):
     mood: str
 
 
+@dataclass(kw_only=True)
+class SendReplyMessageCommand(SendMessageCommand):
+    text: str
+    reply_to: int
+
+
 class MessageStatus(enum.Enum):
     SENT = 0
     PENDING = 1
@@ -48,4 +54,8 @@ class SendMessageUseCase(ABC):
 
     @abstractmethod
     def send_motivation_message(self, command: SendMotivationMessageCommand) -> SendMessageResult:
+        pass
+
+    @abstractmethod
+    def send_reply_message(self, command: SendReplyMessageCommand) -> SendMessageResult:
         pass

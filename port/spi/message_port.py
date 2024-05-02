@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from domain.model.message_model import SimpleMessageModel, MessageModel, MessageWithButtonsModel, MotivationMessageModel
+from domain.model.message_model import SimpleMessageModel, MessageModel, MessageWithButtonsModel, \
+    MotivationMessageModel, ReplyMessageModel
 from domain.model.user_model import UserModel
 
 
@@ -17,6 +18,10 @@ class CreateMessagePort(ABC):
     def create_motivation_message(self, user: UserModel, service_id, mood) -> MotivationMessageModel:
         pass
 
+    @abstractmethod
+    def create_reply_message(self, user: UserModel, service_id, text, reply_to) -> ReplyMessageModel:
+        pass
+
 
 class SaveMessagePort(ABC):
     @abstractmethod
@@ -31,6 +36,10 @@ class SaveMessagePort(ABC):
     def save_motivation_message(self, message: MotivationMessageModel):
         pass
 
+    @abstractmethod
+    def save_reply_message(self, message: ReplyMessageModel):
+        pass
+
 
 class SendMessagePort(ABC):
     @abstractmethod
@@ -43,6 +52,10 @@ class SendMessagePort(ABC):
 
     @abstractmethod
     def send_motivation_message(self, message: MotivationMessageModel, file_url: str):
+        pass
+
+    @abstractmethod
+    def send_reply_message(self, message: ReplyMessageModel):
         pass
 
 
