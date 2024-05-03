@@ -23,16 +23,19 @@ class SimpleMessage(Message):
 
     text: Mapped[str] = mapped_column(nullable=True)
 
-    def __init__(self, user: User, text: str, service: Service = None, **kw):
+    def __init__(self, user: User = None, text: str = None, service: Service = None, **kw):
         """
         :param user: User that should receive a message
         :param text: text of a message
         :param service: service which as a sender
         """
-        self.user = user
-        self.service = service
+        if user is not None:
+            self.user = user
+        if service is not None:
+            self.service = service
 
-        self.text = text
+        if text is not None:
+            self.text = text
 
         super().__init__(**kw)
 

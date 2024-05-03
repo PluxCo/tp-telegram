@@ -5,10 +5,19 @@ from threading import Thread
 from time import sleep
 import alembic.config
 
+from adapter.api.http.send_message_view import MessageView
+from adapter.api.tg import register_feedback_adapter
+from adapter.spi.repository.feedback_repositry import FeedbackRepository
+from adapter.spi.repository.imgur_gif_finder import ImgurGifFinder
+from adapter.spi.repository.message_repository import DbMessageRepository
+from adapter.spi.repository.message_sender import TgMessageSender
+from adapter.spi.repository.user_repository import DbUserRepository
 from api.senders import ApiSessionCreationNotifier
 from core.sessions.aggregation import SessionAggregator
 from core.sessions.events import SessionEventManager, SessionEventType
-from scenarios.routing_manager import session_manager
+from scenarios.routing_manager import session_manager, RFM
+from service.message_service import MessageService
+from service.register_feedback_service import RegisterFeedbackService
 from tools import Settings
 from db_connector import DBWorker
 
@@ -44,6 +53,21 @@ if __name__ == '__main__':
     session_event_manager.subscribe(api_session_creation_notifier, SessionEventType.SESSION_CREATED)
 
     session_aggregator = SessionAggregator(session_event_manager)
+
+    # new
+    msg_rep = DbMessageRepository()
+    msg_sender = TgMessageSender()
+    usr_rep = DbUserRepository()
+    fb_rep = FeedbackRepository()
+    manager = RFM()
+
+    gif_finder = ImgurGifFinder(os.getenv("IMGUR_CLIENT_ID"))
+
+    message_service = MessageService(msg_rep, msg_rep, msg_sender, usr_rep, gif_finder)
+    feedback_service = RegisterFeedbackService(usr_rep, msg_sender, fb_rep, manager)
+
+    MessageView.set_service(message_service)
+    register_feedback_adapter.set_serivice(feedback_service)
 
 
     def schedule_poll():
