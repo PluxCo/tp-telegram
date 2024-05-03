@@ -54,20 +54,20 @@ if __name__ == '__main__':
 
     session_aggregator = SessionAggregator(session_event_manager)
 
-# new
-msg_rep = DbMessageRepository()
-msg_sender = TgMessageSender()
-usr_rep = DbUserRepository()
-fb_rep = FeedbackRepository()
-manager = RFM()
+    # new
+    msg_rep = DbMessageRepository()
+    msg_sender = TgMessageSender()
+    usr_rep = DbUserRepository()
+    fb_rep = FeedbackRepository()
+    manager = RFM()
 
-gif_finder = ImgurGifFinder(os.getenv("IMGUR_CLIENT_ID"))
+    gif_finder = ImgurGifFinder(os.getenv("IMGUR_CLIENT_ID"))
 
-message_service = MessageService(msg_rep, msg_rep, msg_sender, usr_rep, gif_finder)
-feedback_service = RegisterFeedbackService(usr_rep, msg_sender, fb_rep, manager)
+    message_service = MessageService(msg_rep, msg_rep, msg_sender, usr_rep, gif_finder)
+    feedback_service = RegisterFeedbackService(usr_rep, msg_sender, fb_rep, manager)
 
-MessageView.set_service(message_service)
-register_feedback_adapter.set_serivice(feedback_service)
+    MessageView.set_service(message_service)
+    register_feedback_adapter.set_serivice(feedback_service)
 
 
     def schedule_poll():
