@@ -3,6 +3,7 @@ import os
 from datetime import timedelta, time, datetime
 from threading import Thread
 from time import sleep
+import alembic.config
 
 from adapter.api.http.send_message_view import MessageView
 from adapter.api.tg import register_feedback_adapter
@@ -32,22 +33,26 @@ logging.getLogger("planner").setLevel(logging.DEBUG)
 logging.getLogger("api").setLevel(logging.DEBUG)
 logging.getLogger("tools").setLevel(logging.DEBUG)
 
-DBWorker.init_db_file("sqlite:///data/database.db?check_same_thread=False")
+if __name__ == '__main__':
+    alembic.config.main(['--raiseerr',
+                         'upgrade', 'head'])
 
-Settings.setup({
-    "password": "32266",
-    "amount_of_questions": 10,
-    "session_duration": timedelta(minutes=10).total_seconds(),
-    "start_time": time(0, 0).isoformat(),
-    "end_time": time(23, 59).isoformat(),
-    "period": timedelta(days=1).total_seconds(),
-})
+    DBWorker.init_db_file("sqlite:///data/database.db?check_same_thread=False")
 
-api_session_creation_notifier = ApiSessionCreationNotifier()
-session_event_manager = SessionEventManager()
-session_event_manager.subscribe(api_session_creation_notifier, SessionEventType.SESSION_CREATED)
+    Settings.setup({
+        "password": "32266",
+        "amount_of_questions": 10,
+        "session_duration": timedelta(minutes=10).total_seconds(),
+        "start_time": time(0, 0).isoformat(),
+        "end_time": time(23, 59).isoformat(),
+        "period": timedelta(days=1).total_seconds(),
+    })
 
-session_aggregator = SessionAggregator(session_event_manager)
+    api_session_creation_notifier = ApiSessionCreationNotifier()
+    session_event_manager = SessionEventManager()
+    session_event_manager.subscribe(api_session_creation_notifier, SessionEventType.SESSION_CREATED)
+
+    session_aggregator = SessionAggregator(session_event_manager)
 
 # new
 msg_rep = DbMessageRepository()
@@ -65,24 +70,24 @@ MessageView.set_service(message_service)
 register_feedback_adapter.set_serivice(feedback_service)
 
 
-def schedule_poll():
-    while True:
-        try:
-            sleep(5)
-            curren_time = datetime.now()
-            session_aggregator.initiate_sessions(curren_time)
-        except Exception:
-            logging.exception(f"Main schedule exception")
+    def schedule_poll():
+        while True:
+            try:
+                sleep(5)
+                curren_time = datetime.now()
+                session_aggregator.initiate_sessions(curren_time)
+            except Exception:
+                logging.exception(f"Main schedule exception")
 
 
-session_manager.update_settings()
+    session_manager.update_settings()
 
-logging.info("Starting polling")
+    logging.info("Starting polling")
 
-bot_th = Thread(target=bot.infinity_polling, daemon=True)
-bot_th.start()
+    bot_th = Thread(target=bot.infinity_polling, daemon=True)
+    bot_th.start()
 
-schedule_th = Thread(target=schedule_poll, daemon=True)
-schedule_th.start()
+    schedule_th = Thread(target=schedule_poll, daemon=True)
+    schedule_th.start()
 
-api_app.run("0.0.0.0", port=os.getenv("PORT", 3000), debug=False)
+    api_app.run("0.0.0.0", port=os.getenv("PORT", 3000), debug=False)
