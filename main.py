@@ -3,7 +3,8 @@ import os
 from datetime import timedelta, time, datetime
 from threading import Thread
 from time import sleep
-import alembic.config
+from alembic.config import Config
+import alembic.command
 
 from adapter.api.http.send_message_view import MessageView
 from adapter.api.tg import register_feedback_adapter
@@ -25,17 +26,18 @@ from api import app as api_app
 
 from telegram.bot import bot
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("telegram").setLevel(logging.DEBUG)
-logging.getLogger("core").setLevel(logging.DEBUG)
-logging.getLogger("scenarios").setLevel(logging.DEBUG)
-logging.getLogger("planner").setLevel(logging.DEBUG)
-logging.getLogger("api").setLevel(logging.DEBUG)
-logging.getLogger("tools").setLevel(logging.DEBUG)
-
 if __name__ == '__main__':
-    alembic.config.main(['--raiseerr',
-                         'upgrade', 'head'])
+    config = Config('alembic.ini')
+
+    alembic.command.upgrade(config, 'head')
+
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("telegram").setLevel(logging.DEBUG)
+    logging.getLogger("core").setLevel(logging.DEBUG)
+    logging.getLogger("scenarios").setLevel(logging.DEBUG)
+    logging.getLogger("planner").setLevel(logging.DEBUG)
+    logging.getLogger("api").setLevel(logging.DEBUG)
+    logging.getLogger("tools").setLevel(logging.DEBUG)
 
     DBWorker.init_db_file("sqlite:///data/database.db?check_same_thread=False")
 
