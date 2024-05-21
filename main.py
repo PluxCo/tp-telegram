@@ -8,17 +8,21 @@ import alembic.command
 
 from adapter.api.http.send_message_view import MessageView
 from adapter.api.tg import register_feedback_adapter
+from adapter.spi.notifiers.session_notifier import WebhookSessionNotifier
+
 from adapter.spi.repository.feedback_repositry import FeedbackRepository
 from adapter.spi.repository.imgur_gif_finder import ImgurGifFinder
 from adapter.spi.repository.message_repository import DbMessageRepository
 from adapter.spi.repository.message_sender import TgMessageSender
+from adapter.spi.repository.service_repository import ServiceRepository
+from adapter.spi.repository.session_repository import SessionRepository
 from adapter.spi.repository.user_repository import DbUserRepository
-from api.senders import ApiSessionCreationNotifier
-from core.sessions.aggregation import SessionAggregator
+
 from core.sessions.events import SessionEventManager, SessionEventType
-from scenarios.routing_manager import session_manager, RFM
+from scenarios.context_managers import SimpleContextManager
 from service.message_service import MessageService
 from service.register_feedback_service import RegisterFeedbackService
+from service.session_aggregator import SessionAggregator
 from tools import Settings
 from db_connector import DBWorker
 
@@ -38,10 +42,14 @@ if __name__ == '__main__':
     logging.getLogger("planner").setLevel(logging.DEBUG)
     logging.getLogger("api").setLevel(logging.DEBUG)
     logging.getLogger("tools").setLevel(logging.DEBUG)
+    logging.getLogger("adapter").setLevel(logging.DEBUG)
+    logging.getLogger("service").setLevel(logging.DEBUG)
+    logging.getLogger("domain").setLevel(logging.DEBUG)
 
     DBWorker.init_db_file("sqlite:///data/database.db?check_same_thread=False")
 
-    Settings.setup({
+    stg = Settings()
+    stg.setup({
         "password": "32266",
         "amount_of_questions": 10,
         "session_duration": timedelta(minutes=10).total_seconds(),
@@ -50,23 +58,31 @@ if __name__ == '__main__':
         "period": timedelta(days=1).total_seconds(),
     })
 
-    api_session_creation_notifier = ApiSessionCreationNotifier()
-    session_event_manager = SessionEventManager()
-    session_event_manager.subscribe(api_session_creation_notifier, SessionEventType.SESSION_CREATED)
-
-    session_aggregator = SessionAggregator(session_event_manager)
+    context_manager = SimpleContextManager()
 
     # new
-    msg_rep = DbMessageRepository()
-    msg_sender = TgMessageSender()
-    usr_rep = DbUserRepository()
-    fb_rep = FeedbackRepository()
-    manager = RFM()
+    message_repo = DbMessageRepository()
+    tg_message_sender = TgMessageSender()
+    user_repo = DbUserRepository()
+    feedback_repo = FeedbackRepository()
+    session_repo = SessionRepository()
+    services_repo = ServiceRepository()
 
     gif_finder = ImgurGifFinder(os.getenv("IMGUR_CLIENT_ID"))
 
-    message_service = MessageService(msg_rep, msg_rep, msg_sender, usr_rep, gif_finder)
-    feedback_service = RegisterFeedbackService(usr_rep, msg_sender, fb_rep, manager)
+    wh_session_notifier = WebhookSessionNotifier()
+
+    session_aggregator = SessionAggregator(session_repo, session_repo, user_repo, services_repo, wh_session_notifier,
+                                           message_repo,
+                                           timedelta(seconds=stg["period"]),
+                                           time.fromisoformat(stg["start_time"]),
+                                           time.fromisoformat(stg["end_time"]),
+                                           stg["amount_of_questions"],
+                                           timedelta(seconds=stg["session_duration"]))
+
+    message_service = MessageService(message_repo, message_repo, tg_message_sender, user_repo, gif_finder)
+    feedback_service = RegisterFeedbackService(user_repo, tg_message_sender, feedback_repo, session_repo, session_repo,
+                                               session_aggregator, context_manager)
 
     MessageView.set_service(message_service)
     register_feedback_adapter.set_serivice(feedback_service)
@@ -77,12 +93,11 @@ if __name__ == '__main__':
             try:
                 sleep(5)
                 curren_time = datetime.now()
+                session_aggregator.close_expired_session()
                 session_aggregator.initiate_sessions(curren_time)
             except Exception:
                 logging.exception(f"Main schedule exception")
 
-
-    session_manager.update_settings()
 
     logging.info("Starting polling")
 
