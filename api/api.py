@@ -8,8 +8,6 @@ from api.resources.services import ServiceBoundResource, ServiceUnboundResource
 app = Flask(__name__)
 api = Api(app)
 
-# api.add_resource(SettingsResource, "/settings/")
-# api.add_resource(MessageResource, "/message/")
 api.add_resource(ServiceUnboundResource, "/service/")
 api.add_resource(ServiceBoundResource, "/service/<string:s_id>")
 
