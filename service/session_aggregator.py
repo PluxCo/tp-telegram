@@ -37,21 +37,21 @@ class SessionAggregator(CloseExpiredSessionPort, InitSessionPort):
 
         self.__prev_call = datetime.min
 
-        self.__period: timedelta = time_period
-        self.__from: time = begin_time
-        self.__to: time = end_time
+        self.time_period: timedelta = time_period
+        self.begin_time: time = begin_time
+        self.end_time: time = end_time
 
-        self.__messages_count: int = max_messages
-        self.__time_limit: timedelta = time_limit
+        self.max_messages: int = max_messages
+        self.time_limit: timedelta = time_limit
 
     def initiate_sessions(self, pick_time: datetime):
         users = list(self.__get_all_users_port.get_all_users())
         services = list(self.__get_all_services_port.get_all_services())
 
-        if pick_time - self.__prev_call < self.__period:
+        if pick_time - self.__prev_call < self.time_period:
             return
 
-        if pick_time.time() < self.__from or datetime.now().time() > self.__to:
+        if pick_time.time() < self.begin_time or datetime.now().time() > self.end_time:
             return
 
         for u in users:
@@ -90,10 +90,10 @@ class SessionAggregator(CloseExpiredSessionPort, InitSessionPort):
         messages_count = self.__get_messages_in_time_interval.get_messages_count_in_time_interval(session.open_time,
                                                                                                   session.close_time)
 
-        if messages_count >= self.__messages_count:
+        if messages_count >= self.max_messages:
             return True
 
-        if datetime.now() - session.open_time > self.__time_limit:
+        if datetime.now() - session.open_time > self.time_limit:
             return True
 
         return False
