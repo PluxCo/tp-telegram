@@ -28,6 +28,9 @@ class MessageService(SendMessageUseCase):
     def send_simple_message(self, command: SendSimpleMessageCommand) -> SendMessageResult:
         user = self.__find_user_port.find_user(command.user_id)
 
+        if user is None:
+            return SendMessageResult(-1, MessageStatus.CANCELED)
+
         message = self.__create_message_port.create_simple_message(user, command.service_id, command.text)
 
         self.__send_message_port.send_simple_message(message)
@@ -39,6 +42,9 @@ class MessageService(SendMessageUseCase):
 
     def send_message_with_buttons(self, command: SendMessageWithButtonsCommand) -> SendMessageResult:
         user = self.__find_user_port.find_user(command.user_id)
+
+        if user is None:
+            return SendMessageResult(-1, MessageStatus.CANCELED)
 
         message = self.__create_message_port.create_message_with_buttons(user,
                                                                          command.service_id,
@@ -55,6 +61,9 @@ class MessageService(SendMessageUseCase):
     def send_motivation_message(self, command: SendMotivationMessageCommand) -> SendMessageResult:
         user = self.__find_user_port.find_user(command.user_id)
 
+        if user is None:
+            return SendMessageResult(-1, MessageStatus.CANCELED)
+
         message = self.__create_message_port.create_motivation_message(user, command.service_id, command.mood)
 
         gif = self.__gif_finder_port.find_gif(command.mood)
@@ -68,6 +77,9 @@ class MessageService(SendMessageUseCase):
 
     def send_reply_message(self, command: SendReplyMessageCommand) -> SendMessageResult:
         user = self.__find_user_port.find_user(command.user_id)
+
+        if user is None:
+            return SendMessageResult(-1, MessageStatus.CANCELED)
 
         message = self.__create_message_port.create_reply_message(user,
                                                                   command.service_id,
