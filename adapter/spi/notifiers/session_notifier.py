@@ -3,7 +3,7 @@ import logging
 import requests
 
 from api.senders import WebhhokEventType
-from domain.model.session_model import Session
+from domain.model.session_model import Session, SessionState
 from port.spi.session_port import SessionChangedNotifierPort
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class WebhookSessionNotifier(SessionChangedNotifierPort):
     def __dump_session_data(self, session: Session):
         data = {
             "user_id": session.user.external_id,
-            "state": session.state.name
+            "state": "OPEN" if session.state in (SessionState.OPEN, SessionState.STARTED) else "CLOSE"
         }
 
         return data

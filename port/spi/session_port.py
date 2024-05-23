@@ -1,20 +1,16 @@
 import abc
 from datetime import datetime
-from typing import Iterable
+from typing import Iterable, Optional
 
-from adapter.spi.entity.session_entity import SessionEntity
 from core.service import Service
-from domain.model.session_model import Session
+from domain.model.session_model import Session, SessionState
 from domain.model.user_model import UserModel
 
 
-class GetOpenSessionPort(abc.ABC):
+class GetSessionByStatePort(abc.ABC):
     @abc.abstractmethod
-    def get_open_user_sessions(self, user: UserModel, service: Service) -> Iterable[Session]:
-        pass
-
-    @abc.abstractmethod
-    def get_open_sessions(self) -> Iterable[Session]:
+    def get_user_sessions(self, user: Optional[UserModel], service: Optional[Service],
+                          states: list[SessionState]) -> Iterable[Session]:
         pass
 
 
@@ -33,6 +29,12 @@ class CloseExpiredSessionPort(abc.ABC):
 class InitSessionPort(abc.ABC):
     @abc.abstractmethod
     def initiate_sessions(self, pick_time: datetime):
+        pass
+
+
+class StartSessionPort(abc.ABC):
+    @abc.abstractmethod
+    def start_user_session(self, user: UserModel):
         pass
 
 

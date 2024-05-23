@@ -20,9 +20,15 @@ class DbUserRepository(FindUserPort, FindUserByChatIdPort, GetUserByIdPort, GetA
             user: User | None = db.get(User, user_id)
             return user.to_model() if user is not None else None
 
-    def find_user_by_chat_id(self, chat_id: int) -> UserModel:
+    def find_user_by_chat_id(self, chat_id: int):
         with DBWorker() as db:
             user_entity = db.scalar(select(User).where(User.tg_id == chat_id))
+
+            if user_entity is None:
+                user_entity = User(tg_id=chat_id)
+
+                db.add(user_entity)
+                db.commit()
 
             return user_entity.to_model()
 

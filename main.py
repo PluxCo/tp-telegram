@@ -74,16 +74,13 @@ if __name__ == '__main__':
     wh_session_notifier = WebhookSessionNotifier()
 
     session_aggregator = SessionAggregator(session_repo, session_repo, user_repo, services_repo, wh_session_notifier,
-                                           message_repo,
-                                           timedelta(seconds=stg["period"]),
-                                           time.fromisoformat(stg["start_time"]),
-                                           time.fromisoformat(stg["end_time"]),
-                                           stg["amount_of_questions"],
-                                           timedelta(seconds=stg["session_duration"]))
+                                           message_repo, timedelta(seconds=stg["period"]),
+                                           time.fromisoformat(stg["start_time"]), time.fromisoformat(stg["end_time"]),
+                                           stg["amount_of_questions"], timedelta(seconds=stg["session_duration"]))
 
     message_service = MessageService(message_repo, message_repo, tg_message_sender, user_repo, gif_finder)
     feedback_service = RegisterFeedbackService(user_repo, tg_message_sender, feedback_repo, session_repo, session_repo,
-                                               session_aggregator, context_manager)
+                                               session_aggregator, session_aggregator, context_manager)
     settings_service = SettingsService(session_aggregator)
 
     MessageView.set_service(message_service)

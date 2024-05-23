@@ -13,10 +13,11 @@ from telegram.messages import SimpleMessage, MessageWithButtons
 
 
 class DbMessageRepository(CreateMessagePort, SaveMessagePort, GetMessageInTimeIntervalPort):
-    def get_messages_count_in_time_interval(self, begin: datetime, end: datetime) -> int:
+    def get_messages_count_in_time_interval(self, user, service, begin: datetime, end: datetime) -> int:
         with DBWorker() as db:
             return db.execute(select(func.count(Message.id)).
-                              where(Message.date >= begin, Message.date <= end)).scalar()
+                              where(Message.date >= begin, Message.date <= end,
+                                    Message.user_id == user.id, Message.service_id == service.id)).scalar()
 
     def create_simple_message(self, user: UserModel, service_id, text) -> SimpleMessageModel:
         with DBWorker() as db:

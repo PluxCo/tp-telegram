@@ -8,7 +8,7 @@ from port.api.register_feedback_use_case import RegisterFeedbackUseCase, Registe
     RegisterReplyFeedbackCommand, RegisterMessageFeedbackCommand
 
 from port.spi.feedback_port import CreateFeedbackPort
-from port.spi.session_port import GetOpenSessionPort, SaveSessionPort, CloseExpiredSessionPort
+from port.spi.session_port import GetSessionByStatePort, SaveSessionPort, CloseExpiredSessionPort, StartSessionPort
 from port.spi.user_port import FindUserByChatIdPort
 from port.spi.message_port import GetMessageByInChatIdPort
 
@@ -25,10 +25,11 @@ class RegisterFeedbackService(RegisterFeedbackUseCase):
     __get_message_by_in_chat_id_port: GetMessageByInChatIdPort
     __create_feedback_port: CreateFeedbackPort
 
-    __get_open_session_port: GetOpenSessionPort
+    __get_open_session_port: GetSessionByStatePort
     __save_session_port: SaveSessionPort
 
     __close_expired_session_port: CloseExpiredSessionPort
+    __start_session_port: StartSessionPort
     __context_manager: SimpleContextManager
 
     def register_message_feedback(self, command: RegisterMessageFeedbackCommand):
@@ -61,6 +62,7 @@ class RegisterFeedbackService(RegisterFeedbackUseCase):
     # FIXME: remove user from signature when feedback will become domain model
     def __handle_feedback(self, feedback: UserFeedback, user: UserModel):
         self.__close_expired_session_port.close_expired_session(user)
+        self.__start_session_port.start_user_session(user)
 
         self.__select_scenario(feedback)
 

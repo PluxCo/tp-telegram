@@ -49,6 +49,8 @@ class ServiceFrame(BaseFrame):
             "session": SessionSerializer().dump(session) if session else None,
         }
 
+        logger.debug(f"Service frame handled: {total_data}")
+
         wh = feedback.message.service.webhook
 
         requests.post(wh, json=total_data)

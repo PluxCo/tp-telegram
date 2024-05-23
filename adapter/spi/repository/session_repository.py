@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Optional
 
 from sqlalchemy import select
 
@@ -7,15 +7,21 @@ from core.service import Service
 from db_connector import DBWorker
 from domain.model.session_model import Session
 from domain.model.user_model import UserModel
-from port.spi.session_port import GetOpenSessionPort, SaveSessionPort
+from port.spi.session_port import GetSessionByStatePort, SaveSessionPort
 
 
-class SessionRepository(GetOpenSessionPort, SaveSessionPort):
-    def get_open_user_sessions(self, user: UserModel, service: Service) -> Iterable[Session]:
+class SessionRepository(GetSessionByStatePort, SaveSessionPort):
+    def get_user_sessions(self, user, service, states) -> Iterable[Session]:
+        stmt = select(SessionEntity).where(SessionEntity.state.in_(states))
+
+        if user is not None:
+            stmt = stmt.where(SessionEntity.user_id == user.id)
+
+        if service is not None:
+            stmt = stmt.where(SessionEntity.service_id == service.id)
+
         with DBWorker() as db:
-            sessions = db.scalars(select(SessionEntity).where(SessionEntity.user_id == user.id,
-                                                              SessionEntity.service_id == service.id,
-                                                              SessionEntity.state == SessionState.OPEN))
+            sessions = db.scalars(stmt)
 
             for s in sessions:
                 yield s.to_model()

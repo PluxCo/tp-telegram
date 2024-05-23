@@ -27,6 +27,7 @@ class SessionEntity(SqlAlchemyBase):
     state: Mapped[SessionState] = mapped_column(default=SessionState.OPEN)
 
     open_time: Mapped[datetime]
+    start_time: Mapped[datetime] = mapped_column(nullable=True)
     close_time: Mapped[datetime] = mapped_column(default=datetime.max)
 
     def __repr__(self):
@@ -38,6 +39,7 @@ class SessionEntity(SqlAlchemyBase):
                        service=self.service,
                        state=self.state,
                        open_time=self.open_time,
+                       start_time=self.start_time,
                        close_time=self.close_time)
 
     @staticmethod
@@ -47,4 +49,5 @@ class SessionEntity(SqlAlchemyBase):
                              service_id=s.service.id,
                              state=s.state,
                              open_time=s.open_time,
+                             start_time=s.start_time,
                              close_time=s.close_time)

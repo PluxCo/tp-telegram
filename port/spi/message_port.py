@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+from core.service import Service
 from domain.model.message_model import SimpleMessageModel, MessageModel, MessageWithButtonsModel, \
     MotivationMessageModel, ReplyMessageModel
 from domain.model.user_model import UserModel
@@ -68,5 +69,6 @@ class GetMessageByInChatIdPort(ABC):
 
 class GetMessageInTimeIntervalPort(ABC):
     @abstractmethod
-    def get_messages_count_in_time_interval(self, begin: datetime, end: datetime) -> int:
+    def get_messages_count_in_time_interval(self, user: UserModel, service: Service, begin: datetime,
+                                            end: datetime) -> int:
         pass
