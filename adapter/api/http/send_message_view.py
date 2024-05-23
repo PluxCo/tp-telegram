@@ -1,8 +1,12 @@
+import logging
+
 import flask
 from flask_restful import Resource
 
 from port.api.send_message_use_case import SendMessageUseCase, SendSimpleMessageCommand, SendMessageResult, \
     SendMessageWithButtonsCommand, SendMotivationMessageCommand, SendReplyMessageCommand
+
+logger = logging.getLogger(__name__)
 
 
 class MessageView(Resource):
@@ -21,6 +25,7 @@ class MessageView(Resource):
         sent_messages = []
 
         for parsed_message in parsed_messages:
+            logger.info(f"Sending: {parsed_message}")
             res = None
             match parsed_message["type"]:
                 case "SIMPLE":

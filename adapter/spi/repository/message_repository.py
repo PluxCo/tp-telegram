@@ -1,16 +1,24 @@
-from sqlalchemy import update
+from datetime import datetime
+
+from sqlalchemy import select, func
 
 from adapter.spi.entity.message_entity import MotivationMessageEntity, ReplyMessageEntity
+from core.message import MessageState as EntityMessageState, Message
 from db_connector import DBWorker
-from domain.model.message_model import SimpleMessageModel, MessageState, MessageModel, MessageWithButtonsModel, \
-    MotivationMessageModel, ReplyMessageModel
+from domain.model.message_model import SimpleMessageModel, MessageState, MessageWithButtonsModel, \
+    MotivationMessageModel, ReplyMessageModel, MessageModel
 from domain.model.user_model import UserModel
-from port.spi.message_port import CreateMessagePort, SaveMessagePort, GetMessageByInChatIdPort
+from port.spi.message_port import CreateMessagePort, SaveMessagePort, GetMessageInTimeIntervalPort
 from telegram.messages import SimpleMessage, MessageWithButtons
-from core.message import MessageState as EntityMessageState
 
 
-class DbMessageRepository(CreateMessagePort, SaveMessagePort):
+class DbMessageRepository(CreateMessagePort, SaveMessagePort, GetMessageInTimeIntervalPort):
+    def get_messages_count_in_time_interval(self, user, service, begin: datetime, end: datetime) -> int:
+        with DBWorker() as db:
+            return db.execute(select(func.count(Message.id)).
+                              where(Message.date >= begin, Message.date <= end,
+                                    Message.user_id == user.id, Message.service_id == service.id)).scalar()
+
     def create_simple_message(self, user: UserModel, service_id, text) -> SimpleMessageModel:
         with DBWorker() as db:
             m = SimpleMessage(text=text, user_id=user.id, service_id=service_id)

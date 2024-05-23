@@ -66,10 +66,10 @@ class TgMessageSender(SendMessagePort, GetMessageByInChatIdPort):
     def get_message_by_in_chat_id(self, message_id: int) -> MessageModel:
         # FIXME: Wrong associated types
         with DBWorker() as db:
-            message_entity = db.scalar(select(Message).where(Message.internal_id == message_id))
+            message_entity: Message = db.scalar(select(Message).where(Message.internal_id == message_id))
 
             return MessageModel(id=message_entity.id,
-                                user=UserModel(message_entity.user_id),
+                                user=message_entity.user.to_model(),
                                 service_id=message_entity.service_id,
                                 date=message_entity.date,
                                 state=MessageState.SENT if message_entity.state == EntityMessageState.TRANSFERRED else EntityMessageState.PENDING)
