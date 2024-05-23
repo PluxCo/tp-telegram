@@ -66,8 +66,6 @@ class DBWorker:
 
         cls._engine = sqlalchemy.create_engine(url, *args, **kwargs)
 
-        SqlAlchemyBase.metadata.create_all(cls._engine)
-
         cls._maker = sessionmaker(bind=cls._engine)
 
     @classmethod
