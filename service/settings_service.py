@@ -1,3 +1,4 @@
+import numbers
 from datetime import timedelta, time
 
 from port.api.settings_use_case import SettingsUseCase, WrongTypeException
@@ -15,10 +16,10 @@ class SettingsService(SettingsUseCase):
     def set_settings(self, settings: dict):
         data_types = [("password", str),
                       ("amount_of_questions", int),
-                      ("session_duration", int),
+                      ("session_duration", (int, float)),
                       ("start_time", str),
                       ("end_time", str),
-                      ("period", int)]
+                      ("period", (int, float))]
 
         for field, f_type in data_types:
             self.__validate_field(field, f_type, settings)
@@ -35,7 +36,7 @@ class SettingsService(SettingsUseCase):
         s.end_time = time.fromisoformat(stg["end_time"])
         s.time_period = timedelta(seconds=stg["period"])
 
-    def __validate_field(self, filed: str, field_type: type, data: dict):
+    def __validate_field(self, filed: str, field_type: type | tuple[type], data: dict):
         settings_entity = Settings()
         if filed in data:
             if not isinstance(data[filed], field_type):
