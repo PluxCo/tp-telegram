@@ -5,12 +5,11 @@ from domain.model.message_model import MessageModel, MessageVisitor, ReplyMessag
 from port.api.send_message_use_case import SendMessageUseCase, SendSimpleMessageCommand, SendMessageResult, \
     MessageStatus, SendMessageWithButtonsCommand, SendMotivationMessageCommand, SendReplyMessageCommand
 from port.spi.gif_finder_port import GifFinderPort
-from port.spi.message_port import CreateMessagePort, SendMessagePort, SaveMessagePort
+from port.spi.message_port import SendMessagePort, SaveMessagePort
 from port.spi.user_port import FindUserPort
 
 
 class MessageService(SendMessageUseCase):
-    __create_message_port: CreateMessagePort
     __save_message_port: SaveMessagePort
     __send_message_port: SendMessagePort
     __find_user_port: FindUserPort
