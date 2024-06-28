@@ -6,7 +6,7 @@ from dataclasses import dataclass
 @dataclass(kw_only=True)
 class SendMessageCommand:
     user_id: str
-    service_id: int = None
+    service_id: str = None
 
 
 @dataclass(kw_only=True)

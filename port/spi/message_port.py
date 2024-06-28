@@ -7,43 +7,9 @@ from domain.model.message_model import SimpleMessageModel, MessageModel, Message
 from domain.model.user_model import UserModel
 
 
-class CreateMessagePort(ABC):
-    @abstractmethod
-    def create_simple_message(self, user: UserModel, service_id, text) -> SimpleMessageModel:
-        pass
-
-    @abstractmethod
-    def create_message_with_buttons(self, user: UserModel, service_id, text, buttons) -> MessageWithButtonsModel:
-        pass
-
-    @abstractmethod
-    def create_motivation_message(self, user: UserModel, service_id, mood) -> MotivationMessageModel:
-        pass
-
-    @abstractmethod
-    def create_reply_message(self, user: UserModel, service_id, text, reply_to) -> ReplyMessageModel:
-        pass
-
-
 class SaveMessagePort(ABC):
     @abstractmethod
     def save_message(self, message: MessageModel) -> MessageModel:
-        pass
-
-    @abstractmethod
-    def save_simple_message(self, message: SimpleMessageModel):
-        pass
-
-    @abstractmethod
-    def save_message_with_buttons(self, message: MessageWithButtonsModel):
-        pass
-
-    @abstractmethod
-    def save_motivation_message(self, message: MotivationMessageModel):
-        pass
-
-    @abstractmethod
-    def save_reply_message(self, message: ReplyMessageModel):
         pass
 
 

@@ -17,12 +17,10 @@ class MessageService(SendMessageUseCase):
 
     __gif_finder_port: GifFinderPort
 
-    def __init__(self, create_message_port: CreateMessagePort,
-                 save_message_port: SaveMessagePort,
+    def __init__(self, save_message_port: SaveMessagePort,
                  send_message_port: SendMessagePort,
                  find_user_port: FindUserPort,
                  gif_finder_port: GifFinderPort):
-        self.__create_message_port = create_message_port
         self.__save_message_port = save_message_port
         self.__send_message_port = send_message_port
         self.__find_user_port = find_user_port
@@ -35,7 +33,7 @@ class MessageService(SendMessageUseCase):
         if user is None:
             return SendMessageResult(-1, MessageStatus.CANCELED)
 
-        message = self.__create_message_port.create_simple_message(user, command.service_id, command.text)
+        message = SimpleMessageModel(user=user, service_id=command.service_id, text=command.text)
 
         return self.send_message(message)
 
@@ -45,10 +43,8 @@ class MessageService(SendMessageUseCase):
         if user is None:
             return SendMessageResult(-1, MessageStatus.CANCELED)
 
-        message = self.__create_message_port.create_message_with_buttons(user,
-                                                                         command.service_id,
-                                                                         command.text,
-                                                                         command.buttons)
+        message = MessageWithButtonsModel(user=user, service_id=command.service_id,
+                                          text=command.text, buttons=command.buttons)
 
         return self.send_message(message)
 
@@ -58,7 +54,7 @@ class MessageService(SendMessageUseCase):
         if user is None:
             return SendMessageResult(-1, MessageStatus.CANCELED)
 
-        message = self.__create_message_port.create_motivation_message(user, command.service_id, command.mood)
+        message = MotivationMessageModel(user=user, service_id=command.service_id, mood=command.mood)
 
         return self.send_message(message)
 
@@ -68,27 +64,25 @@ class MessageService(SendMessageUseCase):
         if user is None:
             return SendMessageResult(-1, MessageStatus.CANCELED)
 
-        message = self.__create_message_port.create_reply_message(user,
-                                                                  command.service_id,
-                                                                  command.text,
-                                                                  command.reply_to)
+        message = ReplyMessageModel(user=user, service_id=command.service_id,
+                                    text=command.text, reply_to=command.reply_to)
 
         return self.send_message(message)
 
     def send_message(self, message: MessageModel):
         message = self.__save_message_port.save_message(message)
 
-        sender = _MessageComposer(self.__send_message_port, self.__save_message_port, self.__gif_finder_port)
+        sender = _MessageComposer(self.__send_message_port, self.__gif_finder_port)
         message.accept(sender)
+
+        self.__save_message_port.save_message(message)
 
         return sender.sending_result
 
 
 class _MessageComposer(MessageVisitor):
-    def __init__(self, send_message_port: SendMessagePort, save_message_port: SaveMessagePort,
-                 gif_finder_port: GifFinderPort):
+    def __init__(self, send_message_port: SendMessagePort, gif_finder_port: GifFinderPort):
         self.__send_message_port = send_message_port
-        self.__save_message_port = save_message_port
         self.__gif_finder_port = gif_finder_port
 
         self.sending_result: Optional[SendMessageResult] = None
@@ -97,15 +91,11 @@ class _MessageComposer(MessageVisitor):
         self.__send_message_port.send_simple_message(message)
         message.send()
 
-        self.__save_message_port.save_simple_message(message)
-
         self.sending_result = SendMessageResult(message.id, MessageStatus.SENT)
 
     def visit_message_with_buttons(self, message: MessageWithButtonsModel):
         self.__send_message_port.send_message_with_buttons(message)
         message.send()
-
-        self.__save_message_port.save_message_with_buttons(message)
 
         self.sending_result = SendMessageResult(message.id, MessageStatus.SENT)
 
@@ -115,14 +105,10 @@ class _MessageComposer(MessageVisitor):
         self.__send_message_port.send_motivation_message(message, gif)
         message.send()
 
-        self.__save_message_port.save_motivation_message(message)
-
         self.sending_result = SendMessageResult(message.id, MessageStatus.SENT)
 
     def visit_reply_message(self, message: ReplyMessageModel):
         self.__send_message_port.send_reply_message(message)
         message.send()
-
-        self.__save_message_port.save_reply_message(message)
 
         self.sending_result = SendMessageResult(message.id, MessageStatus.SENT)

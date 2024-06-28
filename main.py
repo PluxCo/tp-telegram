@@ -76,7 +76,7 @@ if __name__ == '__main__':
                                            time.fromisoformat(stg["start_time"]), time.fromisoformat(stg["end_time"]),
                                            stg["amount_of_questions"], timedelta(seconds=stg["session_duration"]))
 
-    message_service = MessageService(message_repo, message_repo, tg_message_sender, user_repo, gif_finder)
+    message_service = MessageService(message_repo, tg_message_sender, user_repo, gif_finder)
 
     context_manager = SimpleContextManager(message_service)
 
