@@ -9,6 +9,7 @@ from alembic.config import Config
 import alembic.command
 
 from adapter.api.http.send_message_view import MessageView
+from adapter.api.http.services_view import ServiceBoundView, ServiceUnboundView
 from adapter.api.http.settings_view import SettingsView
 from adapter.api.tg import register_feedback_adapter
 from adapter.spi.notifiers.session_notifier import WebhookSessionNotifier
@@ -24,6 +25,7 @@ from adapter.spi.repository.user_repository import DbUserRepository
 from scenarios.context_managers import SimpleContextManager
 from service.message_service import MessageService
 from service.register_feedback_service import RegisterFeedbackService
+from service.services_service import ServicesService
 from service.session_aggregator import SessionAggregator
 from service.settings_service import SettingsService
 from tools import Settings
@@ -85,9 +87,12 @@ if __name__ == '__main__':
     feedback_service = RegisterFeedbackService(user_repo, tg_message_sender, feedback_repo, session_repo, session_repo,
                                                session_aggregator, session_aggregator, context_manager)
     settings_service = SettingsService(session_aggregator)
+    services_service = ServicesService(services_repo, services_repo, services_repo)
 
     MessageView.set_service(message_service)
     SettingsView.set_service(settings_service)
+    ServiceBoundView.set_service(services_service)
+    ServiceUnboundView.set_service(services_service)
     register_feedback_adapter.set_serivice(feedback_service, telegram_bot)
 
 

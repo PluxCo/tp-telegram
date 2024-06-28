@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from sqlalchemy.orm import Mapped, MappedColumn, mapped_column
 
 from db_connector import SqlAlchemyBase
@@ -11,4 +13,8 @@ class ServiceEntity(SqlAlchemyBase):
     webhook: Mapped[str]
 
     def to_model(self) -> ServiceModel:
-        return ServiceModel(self.id, self.webhook)
+        return ServiceModel(id=self.id, webhook=self.webhook)
+
+    @classmethod
+    def from_model(cls, model: ServiceModel) -> ServiceEntity:
+        return ServiceEntity(id=model.id, webhook=model.webhook)
