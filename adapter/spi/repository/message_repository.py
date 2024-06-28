@@ -2,14 +2,15 @@ from datetime import datetime
 
 from sqlalchemy import select, func
 
-from adapter.spi.entity.message_entity import MotivationMessageEntity, ReplyMessageEntity
-from core.message import MessageState as EntityMessageState, Message
+from adapter.spi.entity.message_entity import MotivationMessageEntity, ReplyMessageEntity, SimpleMessageEntity, \
+    MessageWithButtonsEntity, MessageEntity
+
+from adapter.spi.entity.message_entity import MessageEntity as Message
 from db_connector import DBWorker
-from domain.model.message_model import SimpleMessageModel, MessageState, MessageWithButtonsModel, \
+from domain.model.message_model import SimpleMessageModel, MessageWithButtonsModel, \
     MotivationMessageModel, ReplyMessageModel, MessageModel
 from domain.model.user_model import UserModel
 from port.spi.message_port import CreateMessagePort, SaveMessagePort, GetMessageInTimeIntervalPort
-from telegram.messages import SimpleMessage, MessageWithButtons
 
 
 class DbMessageRepository(CreateMessagePort, SaveMessagePort, GetMessageInTimeIntervalPort):
@@ -21,37 +22,37 @@ class DbMessageRepository(CreateMessagePort, SaveMessagePort, GetMessageInTimeIn
 
     def create_simple_message(self, user: UserModel, service_id, text) -> SimpleMessageModel:
         with DBWorker() as db:
-            m = SimpleMessage(text=text, user_id=user.id, service_id=service_id)
+            m = SimpleMessageEntity(text=text, user_id=user.id, service_id=service_id)
 
             db.add(m)
             db.commit()
 
-            return SimpleMessageModel(id=m.id, user=user, service_id=service_id, text=text)
+            return m.to_model()
 
     def save_simple_message(self, message: SimpleMessageModel):
         with DBWorker() as db:
-            m = db.get(SimpleMessage, message.id)
+            m = db.get(SimpleMessageEntity, message.id)
 
             m.text = message.text
-            m.state = EntityMessageState.TRANSFERRED if message.state == MessageState.SENT else EntityMessageState.PENDING
+            m.state = message.state
             m.date = message.date
 
             db.commit()
 
     def create_message_with_buttons(self, user: UserModel, service_id, text, buttons) -> MessageWithButtonsModel:
         with DBWorker() as db:
-            m = MessageWithButtons(text=text, user_id=user.id, service_id=service_id, buttons=buttons)
+            m = MessageWithButtonsEntity(text=text, user_id=user.id, service_id=service_id, buttons=buttons)
 
             db.add(m)
             db.commit()
 
-            return MessageWithButtonsModel(id=m.id, user=user, service_id=service_id, text=text, buttons=buttons)
+            return m.to_model()
 
     def save_message_with_buttons(self, message: MessageWithButtonsModel):
         with DBWorker() as db:
-            m = db.get(MessageWithButtons, message.id)
+            m = db.get(MessageWithButtonsEntity, message.id)
 
-            m.state = EntityMessageState.TRANSFERRED if message.state == MessageState.SENT else EntityMessageState.PENDING
+            m.state = message.state
             m.date = message.date
 
             db.commit()
@@ -63,13 +64,13 @@ class DbMessageRepository(CreateMessagePort, SaveMessagePort, GetMessageInTimeIn
             db.add(m)
             db.commit()
 
-            return m.to_model(user)
+            return m.to_model()
 
     def save_motivation_message(self, message: MotivationMessageModel):
         with DBWorker() as db:
             m = db.get(MotivationMessageEntity, message.id)
 
-            m.state = EntityMessageState.TRANSFERRED if message.state == MessageState.SENT else EntityMessageState.PENDING
+            m.state = message.state
             m.date = message.date
 
             db.commit()
@@ -81,13 +82,21 @@ class DbMessageRepository(CreateMessagePort, SaveMessagePort, GetMessageInTimeIn
             db.add(m)
             db.commit()
 
-            return m.to_model(user)
+            return m.to_model()
 
     def save_reply_message(self, message: ReplyMessageModel):
         with DBWorker() as db:
             m = db.get(ReplyMessageEntity, message.id)
 
-            m.state = EntityMessageState.TRANSFERRED if message.state == MessageState.SENT else EntityMessageState.PENDING
+            m.state = message.state
             m.date = message.date
 
             db.commit()
+
+    def save_message(self, message: MessageModel) -> MessageModel:
+        with DBWorker() as db:
+            message_entity = MessageEntity.from_model(message)
+            message_entity = db.merge(message_entity)
+            db.commit()
+
+            return message_entity.to_model()

@@ -4,13 +4,13 @@ import logging
 import requests
 from sqlalchemy import select
 
+from adapter.spi.repository.service_repository import ServiceRepository
 from api.parsers.feedback_parsers import FeedbackSerializer
 from api.parsers.session_parsers import SessionSerializer
-from core.feedbacks import UserFeedback
-from core.message import Message
-from core.sessions.events import EventListener
+from domain.model.feedbacks import UserFeedback
 from adapter.spi.entity.session_entity import SessionEntity
 from db_connector import DBWorker
+from domain.model.message_model import MessageModel
 from scenarios.scr import BaseFrame, ScenarioContext
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class WebhhokEventType(enum.Enum):
 
 class ServiceFrame(BaseFrame):
 
-    def __init__(self, context: ScenarioContext, message: Message):
+    def __init__(self, context: ScenarioContext, message: MessageModel):
         super().__init__(context)
 
         self.__message = message
@@ -51,6 +51,8 @@ class ServiceFrame(BaseFrame):
 
         logger.debug(f"Service frame handled: {total_data}")
 
-        wh = feedback.message.service.webhook
+        # TODO: Holly shit. Fix that!
+        service = ServiceRepository().find_service_by_id(feedback.message.service_id)
+        wh = service.webhook
 
         requests.post(wh, json=total_data)

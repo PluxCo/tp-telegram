@@ -5,9 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.message import Message
-from core.service import Service
+from adapter.spi.entity.service_entity import Service
 from core.user import User
-from db_connector import DBWorker
 from telegram.messages import SimpleMessage, MessageWithButtons
 
 

@@ -1,8 +1,7 @@
 import logging
 from datetime import datetime, timedelta, time
 
-from core.service import Service
-
+from domain.model.service_model import ServiceModel
 from domain.model.session_model import Session, SessionState
 from domain.model.user_model import UserModel
 from port.spi.service_port import GetAllServicesPort
@@ -80,7 +79,7 @@ class SessionAggregator(CloseExpiredSessionPort, InitSessionPort, StartSessionPo
 
                 self.__session_changed_notifier_port.notify_session_changed(s)
 
-    def _init_user_session(self, user: UserModel, service: Service):
+    def _init_user_session(self, user: UserModel, service: ServiceModel):
         already_open = list(self.__get_session_by_state_port.get_user_sessions(user, service,
                                                                                [SessionState.OPEN,
                                                                                 SessionState.STARTED]))

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from core.service import Service
+from adapter.spi.entity.service_entity import ServiceEntity
 from domain.model.message_model import SimpleMessageModel, MessageModel, MessageWithButtonsModel, \
     MotivationMessageModel, ReplyMessageModel
 from domain.model.user_model import UserModel
@@ -26,6 +26,10 @@ class CreateMessagePort(ABC):
 
 
 class SaveMessagePort(ABC):
+    @abstractmethod
+    def save_message(self, message: MessageModel) -> MessageModel:
+        pass
+
     @abstractmethod
     def save_simple_message(self, message: SimpleMessageModel):
         pass
@@ -69,6 +73,6 @@ class GetMessageByInChatIdPort(ABC):
 
 class GetMessageInTimeIntervalPort(ABC):
     @abstractmethod
-    def get_messages_count_in_time_interval(self, user: UserModel, service: Service, begin: datetime,
+    def get_messages_count_in_time_interval(self, user: UserModel, service: ServiceEntity, begin: datetime,
                                             end: datetime) -> int:
         pass

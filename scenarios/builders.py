@@ -4,7 +4,7 @@ import uuid
 
 import requests
 
-from core.user import User
+from adapter.spi.entity.user_entity import UserEntity
 from db_connector import DBWorker
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class UserBuilder:
 
     def create_user(self):
         with DBWorker() as db:
-            user = db.get(User, self.__user_id)
+            user = db.get(UserEntity, self.__user_id)
             user.name = self.__name
 
             person_info = {
@@ -66,4 +66,4 @@ class UserBuilder:
 
             db.commit()
 
-            return user
+            return user.to_model()

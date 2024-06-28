@@ -1,13 +1,12 @@
 import logging
 
 import flask
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from sqlalchemy import select
 
 from api.parsers.service_parsers import ServiceSerializer, ServiceCreator
-from core.service import Service
+from adapter.spi.entity.service_entity import ServiceEntity
 from db_connector import DBWorker
-from tools import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ class ServiceUnboundResource(Resource):
         }
 
         with DBWorker() as db:
-            for s in db.scalars(select(Service)):
+            for s in db.scalars(select(ServiceEntity)):
                 res["services"].append(ServiceSerializer().dump(s))
 
         return res, 200
@@ -36,7 +35,7 @@ class ServiceUnboundResource(Resource):
 class ServiceBoundResource(Resource):
     def delete(self, s_id):
         with DBWorker() as db:
-            service = db.get(Service, s_id)
+            service = db.get(ServiceEntity, s_id)
 
             logger.debug(f"Deleting service {service}")
             db.delete(service)

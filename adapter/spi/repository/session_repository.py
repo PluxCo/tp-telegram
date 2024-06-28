@@ -1,12 +1,10 @@
-from typing import Iterable, Optional
+from typing import Iterable
 
 from sqlalchemy import select
 
 from adapter.spi.entity.session_entity import SessionEntity, SessionState
-from core.service import Service
 from db_connector import DBWorker
 from domain.model.session_model import Session
-from domain.model.user_model import UserModel
 from port.spi.session_port import GetSessionByStatePort, SaveSessionPort
 
 

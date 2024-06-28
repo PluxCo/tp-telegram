@@ -2,9 +2,9 @@ from __future__ import annotations
 import abc
 from typing import Optional
 
-from core.feedbacks import UserFeedback
-from core.message import Message
-from core.user import User
+from domain.model.feedbacks import UserFeedback
+from domain.model.message_model import MessageModel as Message
+from domain.model.user_model import UserModel as User
 
 
 class Frame(abc.ABC):

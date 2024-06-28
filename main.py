@@ -59,8 +59,6 @@ if __name__ == '__main__':
         "period": timedelta(days=1).total_seconds(),
     })
 
-    context_manager = SimpleContextManager()
-
     # new
     message_repo = DbMessageRepository()
     tg_message_sender = TgMessageSender()
@@ -79,6 +77,9 @@ if __name__ == '__main__':
                                            stg["amount_of_questions"], timedelta(seconds=stg["session_duration"]))
 
     message_service = MessageService(message_repo, message_repo, tg_message_sender, user_repo, gif_finder)
+
+    context_manager = SimpleContextManager(message_service)
+
     feedback_service = RegisterFeedbackService(user_repo, tg_message_sender, feedback_repo, session_repo, session_repo,
                                                session_aggregator, session_aggregator, context_manager)
     settings_service = SettingsService(session_aggregator)

@@ -2,14 +2,14 @@ import abc
 from datetime import datetime
 from typing import Iterable, Optional
 
-from core.service import Service
+from domain.model.service_model import ServiceModel
 from domain.model.session_model import Session, SessionState
 from domain.model.user_model import UserModel
 
 
 class GetSessionByStatePort(abc.ABC):
     @abc.abstractmethod
-    def get_user_sessions(self, user: Optional[UserModel], service: Optional[Service],
+    def get_user_sessions(self, user: Optional[UserModel], service: Optional[ServiceModel],
                           states: list[SessionState]) -> Iterable[Session]:
         pass
 
