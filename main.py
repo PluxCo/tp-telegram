@@ -3,6 +3,8 @@ import os
 from datetime import timedelta, time, datetime
 from threading import Thread
 from time import sleep
+
+import telebot
 from alembic.config import Config
 import alembic.command
 
@@ -28,8 +30,6 @@ from tools import Settings
 from db_connector import DBWorker
 
 from api import app as api_app
-
-from telegram.bot import bot
 
 if __name__ == '__main__':
     config = Config('alembic.ini')
@@ -59,9 +59,11 @@ if __name__ == '__main__':
         "period": timedelta(days=1).total_seconds(),
     })
 
+    telegram_bot = telebot.TeleBot(token=os.getenv("TG_TOKEN"))
+
     # new
     message_repo = DbMessageRepository()
-    tg_message_sender = TgMessageSender()
+    tg_message_sender = TgMessageSender(telegram_bot)
     user_repo = DbUserRepository()
     feedback_repo = FeedbackRepository()
     session_repo = SessionRepository()
@@ -86,7 +88,7 @@ if __name__ == '__main__':
 
     MessageView.set_service(message_service)
     SettingsView.set_service(settings_service)
-    register_feedback_adapter.set_serivice(feedback_service)
+    register_feedback_adapter.set_serivice(feedback_service, telegram_bot)
 
 
     def schedule_poll():
@@ -102,7 +104,7 @@ if __name__ == '__main__':
 
     logging.info("Starting polling")
 
-    bot_th = Thread(target=bot.infinity_polling, daemon=True)
+    bot_th = Thread(target=telegram_bot.infinity_polling, daemon=True)
     bot_th.start()
 
     schedule_th = Thread(target=schedule_poll, daemon=True)
