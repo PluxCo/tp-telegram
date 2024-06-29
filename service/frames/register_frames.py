@@ -2,8 +2,8 @@ import logging
 
 from domain.model.feedbacks import UserFeedback, ButtonUserFeedback, MessageUserFeedback, ReplyUserFeedback
 from domain.model.message_model import SimpleMessageModel, MessageWithButtonsModel
-from scenarios.builders import UserBuilder
-from scenarios.scr import BaseFrame, ScenarioContext
+from adapter.spi.repository.user_repository import UserBuilder
+from domain.service.scenarios import BaseFrame, ScenarioContext
 
 from tools import Settings
 

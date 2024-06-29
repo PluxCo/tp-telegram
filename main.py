@@ -22,7 +22,7 @@ from adapter.spi.repository.service_repository import ServiceRepository
 from adapter.spi.repository.session_repository import SessionRepository
 from adapter.spi.repository.user_repository import DbUserRepository
 
-from scenarios.context_managers import SimpleContextManager
+from adapter.spi.repository.context_repository import SimpleContextRepository
 from service.message_service import MessageService
 from service.register_feedback_service import RegisterFeedbackService
 from service.services_service import ServicesService
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     message_service = MessageService(message_repo, tg_message_sender, user_repo, gif_finder)
 
-    context_manager = SimpleContextManager(message_service)
+    context_manager = SimpleContextRepository(message_service)
 
     feedback_service = RegisterFeedbackService(user_repo, tg_message_sender, feedback_repo, session_repo, session_repo,
                                                session_aggregator, session_aggregator, context_manager)

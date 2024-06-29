@@ -3,8 +3,8 @@ import abc
 from typing import Optional
 
 from domain.model.feedbacks import UserFeedback
-from domain.model.message_model import MessageModel as Message
 from domain.model.user_model import UserModel as User
+from port.spi.context_provider_port import ScenarioContextManagerPort
 
 
 class Frame(abc.ABC):
@@ -24,16 +24,6 @@ class Frame(abc.ABC):
         pass
 
 
-class ScenarioContextManager(abc.ABC):
-    @abc.abstractmethod
-    def link_frame(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
-        pass
-
-    @abc.abstractmethod
-    def turn_to(self, frame: Frame, is_root=False):
-        pass
-
-
 class ScenarioSnapshot:
     def __init__(self, current_frame: Frame, current_root_idx: int):
         self.current_frame = current_frame
@@ -42,7 +32,8 @@ class ScenarioSnapshot:
 
 class ScenarioContext:
     # Внебрачный сын тайской шлюхи (машины состояний, команды, цепочки обязанностей, наблюдателя и снапшота).
-    def __init__(self, user: User, context_manager: ScenarioContextManager, start: Frame = None):
+    # TODO: Remove port (add events and message buffer)
+    def __init__(self, user: User, context_manager: ScenarioContextManagerPort, start: Frame = None):
         self.__user = user
         self.__context_manager = context_manager
 
@@ -56,7 +47,7 @@ class ScenarioContext:
         return self.__user
 
     @property
-    def manager(self) -> ScenarioContextManager:
+    def manager(self) -> ScenarioContextManagerPort:
         return self.__context_manager
 
     def handle(self, feedback: UserFeedback):

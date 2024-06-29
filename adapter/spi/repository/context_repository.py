@@ -5,13 +5,14 @@ from api.senders import ServiceFrame
 from domain.model.feedbacks import UserFeedback
 from domain.model.message_model import MessageModel as Message
 from db_connector import DBWorker
-from scenarios.scr import ScenarioContextManager, ScenarioContext, ScenarioSnapshot, Frame
+from domain.service.scenarios import ScenarioContext, ScenarioSnapshot, Frame
+from port.spi.context_provider_port import ScenarioContextManagerPort, ScenarioContextLoader
 from service.message_service import MessageService
 
 logger = logging.getLogger(__name__)
 
 
-class SimpleContextManager(ScenarioContextManager):
+class SimpleContextRepository(ScenarioContextManagerPort, ScenarioContextLoader):
     def __init__(self, message_service: MessageService):
         self.__message_service = message_service
 

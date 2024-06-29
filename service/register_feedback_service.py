@@ -2,7 +2,6 @@ import logging
 from dataclasses import dataclass
 
 from domain.model.feedbacks import UserFeedback, MessageUserFeedback, ButtonUserFeedback, ReplyUserFeedback
-from domain.model.user_model import UserModel
 
 from port.api.register_feedback_use_case import RegisterFeedbackUseCase, RegisterButtonFeedbackCommand, \
     RegisterReplyFeedbackCommand, RegisterMessageFeedbackCommand
@@ -12,9 +11,9 @@ from port.spi.session_port import GetSessionByStatePort, SaveSessionPort, CloseE
 from port.spi.user_port import FindUserByChatIdPort
 from port.spi.message_port import GetMessageByInChatIdPort
 
-from scenarios.context_managers import SimpleContextManager
-from scenarios.frames import ConfirmStartFrame, PinConfirmationFrame, UserCreationFrame
-from scenarios.scr import ScenarioContext
+from adapter.spi.repository.context_repository import SimpleContextRepository
+from service.frames.register_frames import ConfirmStartFrame, PinConfirmationFrame, UserCreationFrame
+from domain.service.scenarios import ScenarioContext
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ class RegisterFeedbackService(RegisterFeedbackUseCase):
 
     __close_expired_session_port: CloseExpiredSessionPort
     __start_session_port: StartSessionPort
-    __context_manager: SimpleContextManager
+    __context_repository: SimpleContextRepository
 
     def register_message_feedback(self, command: RegisterMessageFeedbackCommand):
         user = self.__find_user_by_chat_id_port.find_user_by_chat_id(command.chat_id)
@@ -67,7 +66,7 @@ class RegisterFeedbackService(RegisterFeedbackUseCase):
 
         self.__select_scenario(feedback)
 
-        ctx = self.__context_manager.load_context(feedback)
+        ctx = self.__context_repository.load_context(feedback)
 
         if ctx is None:
             logger.warning(f"Failed to load context for: {feedback}")
@@ -78,7 +77,7 @@ class RegisterFeedbackService(RegisterFeedbackUseCase):
     def __select_scenario(self, entity: UserFeedback):
         if isinstance(entity, MessageUserFeedback):
             if entity.text == "/start":
-                context = ScenarioContext(entity.user, self.__context_manager)
+                context = ScenarioContext(entity.user, self.__context_repository)
 
                 start = ConfirmStartFrame(context)
                 pin = PinConfirmationFrame(context)
@@ -86,6 +85,6 @@ class RegisterFeedbackService(RegisterFeedbackUseCase):
 
                 context.root_frames = [start, pin, user_creation]
 
-                self.__context_manager.init_context(context)
+                self.__context_repository.init_context(context)
 
                 logger.debug(f"Created context: {context}")

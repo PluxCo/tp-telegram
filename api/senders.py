@@ -11,7 +11,7 @@ from domain.model.feedbacks import UserFeedback
 from adapter.spi.entity.session_entity import SessionEntity
 from db_connector import DBWorker
 from domain.model.message_model import MessageModel
-from scenarios.scr import BaseFrame, ScenarioContext
+from domain.service.scenarios import BaseFrame, ScenarioContext
 
 logger = logging.getLogger(__name__)
 
