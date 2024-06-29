@@ -1,10 +1,9 @@
 import logging
 from typing import Optional
 
-from api.senders import ServiceFrame
+from db_connector import DBWorker
 from domain.model.feedbacks import UserFeedback
 from domain.model.message_model import MessageModel as Message
-from db_connector import DBWorker
 from domain.service.scenarios import ScenarioContext, ScenarioSnapshot, Frame
 from port.spi.context_provider_port import ScenarioContextManagerPort, ScenarioContextLoader
 from service.message_service import MessageService
@@ -34,15 +33,6 @@ class SimpleContextRepository(ScenarioContextManagerPort, ScenarioContextLoader)
 
     def load_context(self, feedback: UserFeedback) -> Optional[ScenarioContext]:
         context = self.__alive_contexts.get(feedback.user.id)
-
-        if feedback.message is not None and feedback.message.service_id is not None:
-            ctx = ScenarioContext(feedback.user, self)
-            ctx.root_frames = [ServiceFrame(ctx, feedback.message)]
-            ctx.change_state(execute=False)
-
-            logger.debug(f"Loaded api context: {ctx}")
-
-            return ctx
 
         if context is not None and feedback.message is not None and feedback.message.id in self.__snapshots:
             context.load_snapshot(self.__snapshots[feedback.message.id])

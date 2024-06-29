@@ -14,6 +14,12 @@ class GetSessionByStatePort(abc.ABC):
         pass
 
 
+class GetSessionAtTimePort(abc.ABC):
+    @abc.abstractmethod
+    def get_session_at_time(self, user: UserModel, service_id: str, point: datetime) -> Optional[Session]:
+        pass
+
+
 class SaveSessionPort(abc.ABC):
     @abc.abstractmethod
     def save_session(self, session: Session):

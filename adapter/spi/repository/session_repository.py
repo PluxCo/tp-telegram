@@ -1,14 +1,17 @@
-from typing import Iterable
+from datetime import datetime
+from typing import Iterable, Optional
 
 from sqlalchemy import select
 
 from adapter.spi.entity.session_entity import SessionEntity, SessionState
 from db_connector import DBWorker
+from domain.model.service_model import ServiceModel
 from domain.model.session_model import Session
-from port.spi.session_port import GetSessionByStatePort, SaveSessionPort
+from domain.model.user_model import UserModel
+from port.spi.session_port import GetSessionByStatePort, SaveSessionPort, GetSessionAtTimePort
 
 
-class SessionRepository(GetSessionByStatePort, SaveSessionPort):
+class SessionRepository(GetSessionByStatePort, SaveSessionPort, GetSessionAtTimePort):
     def get_user_sessions(self, user, service, states) -> Iterable[Session]:
         stmt = select(SessionEntity).where(SessionEntity.state.in_(states))
 
@@ -30,6 +33,15 @@ class SessionRepository(GetSessionByStatePort, SaveSessionPort):
 
             for s in sessions:
                 yield s.to_model()
+
+    def get_session_at_time(self, user: UserModel, service_id: ServiceModel, point: datetime) -> Optional[Session]:
+        with DBWorker() as db:
+            session = db.scalar(select(SessionEntity).where(point >= SessionEntity.open_time,
+                                                            point <= SessionEntity.close_time,
+                                                            SessionEntity.user_id == user.id,
+                                                            SessionEntity.service_id == service_id))
+
+            return session.to_model() if session is not None else None
 
     def save_session(self, session: Session):
         with DBWorker() as db:
