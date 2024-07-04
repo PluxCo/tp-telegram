@@ -1,6 +1,6 @@
 import enum
 
-from core.feedbacks import UserFeedbackVisitor, MessageUserFeedback, ReplyUserFeedback, ButtonUserFeedback
+from domain.model.feedbacks import UserFeedbackVisitor, MessageUserFeedback, ReplyUserFeedback, ButtonUserFeedback
 
 
 class FeedbackType(enum.Enum):

@@ -18,7 +18,11 @@ if config.attributes.get('configure_logger', True):
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-import main
+from adapter.spi.entity.message_entity import *
+from adapter.spi.entity.service_entity import *
+from adapter.spi.entity.session_entity import *
+from adapter.spi.entity.user_entity import *
+from tools import *
 from db_connector import SqlAlchemyBase
 
 target_metadata = SqlAlchemyBase.metadata

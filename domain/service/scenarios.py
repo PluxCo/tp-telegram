@@ -2,9 +2,9 @@ from __future__ import annotations
 import abc
 from typing import Optional
 
-from core.feedbacks import UserFeedback
-from core.message import Message
-from core.user import User
+from domain.model.feedbacks import UserFeedback
+from domain.model.message_model import MessageModel as Message
+from domain.model.user_model import UserModel as User
 
 
 class Frame(abc.ABC):
@@ -24,16 +24,6 @@ class Frame(abc.ABC):
         pass
 
 
-class ScenarioContextManager(abc.ABC):
-    @abc.abstractmethod
-    def link_frame(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
-        pass
-
-    @abc.abstractmethod
-    def turn_to(self, frame: Frame, is_root=False):
-        pass
-
-
 class ScenarioSnapshot:
     def __init__(self, current_frame: Frame, current_root_idx: int):
         self.current_frame = current_frame
@@ -41,10 +31,9 @@ class ScenarioSnapshot:
 
 
 class ScenarioContext:
-    # Внебрачный сын тайской шлюхи (машины состояний, команды, цепочки обязанностей, наблюдателя и снапшота).
-    def __init__(self, user: User, context_manager: ScenarioContextManager, start: Frame = None):
+    def __init__(self, user: User, context_manager: ScenarioEventListener, start: Frame = None):
         self.__user = user
-        self.__context_manager = context_manager
+        self.__event_listener = context_manager
 
         self.__frame = BaseFrame(self) if start is None else start
 
@@ -54,10 +43,6 @@ class ScenarioContext:
     @property
     def user(self) -> User:
         return self.__user
-
-    @property
-    def manager(self) -> ScenarioContextManager:
-        return self.__context_manager
 
     def handle(self, feedback: UserFeedback):
         self.__frame.handle(feedback)
@@ -75,10 +60,13 @@ class ScenarioContext:
             self.__current_root_idx += 1
             is_root_frame = True
 
-        self.manager.turn_to(self.__frame, is_root=is_root_frame)
+        self.__event_listener.turn_to(self.__frame, is_root=is_root_frame)
 
         if self.__frame is not None and execute:
             self.__frame.exec()
+
+    def attach_message(self, message: Message, frame: Frame, repair_state: bool = False):
+        self.__event_listener.message_attached(message, frame, repair_state)
 
     def create_snapshot(self) -> ScenarioSnapshot:
         return ScenarioSnapshot(self.__frame, self.__current_root_idx)
@@ -101,3 +89,13 @@ class BaseFrame(Frame):
 
     def exec(self):
         self.context.change_state()
+
+
+class ScenarioEventListener(abc.ABC):
+    @abc.abstractmethod
+    def message_attached(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
+        pass
+
+    @abc.abstractmethod
+    def turn_to(self, frame: Frame, is_root=False):
+        pass

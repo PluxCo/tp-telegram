@@ -1,23 +1,16 @@
 import abc
-from datetime import datetime
 
-from core.feedbacks import MessageUserFeedback, ReplyUserFeedback, ButtonUserFeedback
-
-from domain.model.message_model import MessageModel
-from domain.model.user_model import UserModel
+from domain.model.feedbacks import UserFeedback
+from domain.model.session_model import Session
 
 
-class CreateFeedbackPort(abc.ABC):
+class SaveFeedbackPort(abc.ABC):
     @abc.abstractmethod
-    def create_message_feedback(self, text: str, user: UserModel, action_time: datetime) -> MessageUserFeedback:
+    def save_feedback(self, feedback: UserFeedback) -> UserFeedback:
         pass
 
-    @abc.abstractmethod
-    def create_reply_feedback(self, text: str, user: UserModel, action_time: datetime,
-                              reply_to: MessageModel) -> ReplyUserFeedback:
-        pass
 
+class FeedbackRetrievedNotifierPort(abc.ABC):
     @abc.abstractmethod
-    def create_button_feedback(self, user: UserModel, action_time: datetime,
-                               message: MessageModel, button_id: int) -> ButtonUserFeedback:
+    def notify_feedback_retrieved(self, feedback: UserFeedback, session: Session):
         pass

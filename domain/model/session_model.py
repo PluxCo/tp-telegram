@@ -3,7 +3,7 @@ import datetime
 import enum
 from typing import Optional
 
-from core.service import Service
+from adapter.spi.entity.service_entity import ServiceEntity
 from domain.model.user_model import UserModel
 
 
@@ -18,7 +18,7 @@ class Session:
     id: Optional[int] = None
 
     user: UserModel
-    service: Service
+    service: ServiceEntity
     state: SessionState = SessionState.OPEN
 
     open_time: datetime.datetime
