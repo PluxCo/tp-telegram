@@ -2,7 +2,7 @@ import logging
 
 from domain.model.feedbacks import UserFeedback, ButtonUserFeedback, MessageUserFeedback, ReplyUserFeedback
 from domain.model.message_model import SimpleMessageModel, MessageWithButtonsModel
-from adapter.spi.repository.user_repository import UserBuilder
+from adapter.spi.repository.user_repository import UserBuilder  # TODO: Remove adapter dependency
 from domain.service.scenarios import BaseFrame, ScenarioContext
 
 from tools import Settings
@@ -18,7 +18,7 @@ class ConfirmStartFrame(BaseFrame):
                                                "квалифицированным специалистом. Начнем?\n(✿◠‿◠)",
                                           user=self.context.user, buttons=["Поехали!"])
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
 
     def handle(self, feedback: UserFeedback):
         if not isinstance(feedback, ButtonUserFeedback):
@@ -33,7 +33,7 @@ class StartCreationFrame(BaseFrame):
     def exec(self):
         message = SimpleMessageModel(text="Хорошо, давай начнем", user=self.context.user)
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
         self.context.change_state()
 
 
@@ -42,7 +42,7 @@ class PinConfirmationFrame(BaseFrame):
         message = SimpleMessageModel(text="Для продолжения необходимо ввести пароль.",
                                      user=self.context.user)
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
 
     def handle(self, feedback: UserFeedback):
         if not isinstance(feedback, (MessageUserFeedback, ReplyUserFeedback)):
@@ -67,7 +67,7 @@ class BadPasswordFrame(BaseFrame):
         message = SimpleMessageModel(text="Неверный пароль (ง ͠▧. ͡▧)ง",
                                      user=self.context.user)
 
-        self.context.manager.link_frame(message, self.__master)  # Maybe not needed
+        self.context.attach_message(message, self.__master)  # Maybe not needed
         self.context.change_state(self.__master, execute=False)
 
 
@@ -76,7 +76,7 @@ class GoodPasswordFrame(BaseFrame):
         message = SimpleMessageModel(text="Отлично, можем продолжить (っ◔◡◔)っ❤",
                                      user=self.context.user)
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
         self.context.change_state()
 
 
@@ -91,7 +91,7 @@ class UserCreationFrame(BaseFrame):
         message = SimpleMessageModel(text="Как тебя зовут?",
                                      user=self.context.user)
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
 
     def handle(self, feedback: UserFeedback):
         if not isinstance(feedback, (MessageUserFeedback, ReplyUserFeedback)):
@@ -113,7 +113,7 @@ class GroupSelectionFrame(BaseFrame):
         message = SimpleMessageModel(text="Выбери уровни групп, к которым ты относишься",
                                      user=self.context.user)
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
 
         self.context.change_state(GroupRowFrame(self.context, self.__builder))
 
@@ -140,7 +140,7 @@ class GroupRowFrame(BaseFrame):
                                           user=self.context.user, buttons=["Не отношусь", "1", "2", "3", "4", "5"])
         # Be accurate with buttons indices, bc levels selects by that.
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
 
     def handle(self, feedback: UserFeedback):
         if not isinstance(feedback, ButtonUserFeedback):
@@ -168,5 +168,5 @@ class UserCreationEndFrame(BaseFrame):
                                           "Добро пожаловать! 🚀",
                                      user=user)
 
-        self.context.manager.link_frame(message, self)
+        self.context.attach_message(message, self)
         self.context.change_state()

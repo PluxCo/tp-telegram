@@ -3,8 +3,8 @@ import abc
 from typing import Optional
 
 from domain.model.feedbacks import UserFeedback
+from domain.model.message_model import MessageModel as Message
 from domain.model.user_model import UserModel as User
-from port.spi.context_provider_port import ScenarioContextManagerPort
 
 
 class Frame(abc.ABC):
@@ -31,11 +31,9 @@ class ScenarioSnapshot:
 
 
 class ScenarioContext:
-    # Внебрачный сын тайской шлюхи (машины состояний, команды, цепочки обязанностей, наблюдателя и снапшота).
-    # TODO: Remove port (add events and message buffer)
-    def __init__(self, user: User, context_manager: ScenarioContextManagerPort, start: Frame = None):
+    def __init__(self, user: User, context_manager: ScenarioEventListener, start: Frame = None):
         self.__user = user
-        self.__context_manager = context_manager
+        self.__event_listener = context_manager
 
         self.__frame = BaseFrame(self) if start is None else start
 
@@ -45,10 +43,6 @@ class ScenarioContext:
     @property
     def user(self) -> User:
         return self.__user
-
-    @property
-    def manager(self) -> ScenarioContextManagerPort:
-        return self.__context_manager
 
     def handle(self, feedback: UserFeedback):
         self.__frame.handle(feedback)
@@ -66,10 +60,13 @@ class ScenarioContext:
             self.__current_root_idx += 1
             is_root_frame = True
 
-        self.manager.turn_to(self.__frame, is_root=is_root_frame)
+        self.__event_listener.turn_to(self.__frame, is_root=is_root_frame)
 
         if self.__frame is not None and execute:
             self.__frame.exec()
+
+    def attach_message(self, message: Message, frame: Frame, repair_state: bool = False):
+        self.__event_listener.message_attached(message, frame, repair_state)
 
     def create_snapshot(self) -> ScenarioSnapshot:
         return ScenarioSnapshot(self.__frame, self.__current_root_idx)
@@ -92,3 +89,13 @@ class BaseFrame(Frame):
 
     def exec(self):
         self.context.change_state()
+
+
+class ScenarioEventListener(abc.ABC):
+    @abc.abstractmethod
+    def message_attached(self, message: Message, frame: Frame, repair_state: bool = False) -> int:
+        pass
+
+    @abc.abstractmethod
+    def turn_to(self, frame: Frame, is_root=False):
+        pass

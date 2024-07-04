@@ -27,6 +27,7 @@ from db_connector import DBWorker
 
 from service.message_service import MessageService
 from service.register_feedback_service import RegisterFeedbackService
+from service.scenario_manager import ScenarioManager
 from service.services_service import ServicesService
 from service.session_aggregator import SessionAggregator
 from service.settings_service import SettingsService
@@ -71,6 +72,7 @@ if __name__ == '__main__':
     feedback_repo = FeedbackRepository()
     session_repo = SessionRepository()
     services_repo = ServiceRepository()
+    context_repo = SimpleContextRepository()
 
     gif_finder = ImgurGifFinder(os.getenv("IMGUR_CLIENT_ID"))
 
@@ -83,10 +85,10 @@ if __name__ == '__main__':
 
     message_service = MessageService(message_repo, tg_message_sender, user_repo, gif_finder)
 
-    context_manager = SimpleContextRepository(message_service)
+    scenario_service = ScenarioManager(context_repo, context_repo, message_service)
 
     feedback_service = RegisterFeedbackService(user_repo, tg_message_sender, feedback_repo, wh_session_notifier,
-                                               session_repo, session_aggregator, session_aggregator, context_manager)
+                                               session_repo, session_aggregator, session_aggregator, [scenario_service])
     settings_service = SettingsService(session_aggregator)
     services_service = ServicesService(services_repo, services_repo, services_repo)
 
