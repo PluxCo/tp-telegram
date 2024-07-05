@@ -4,8 +4,8 @@ import abc
 from datetime import datetime
 from typing import Optional
 
-from core.message import Message
-from core.user import User
+from domain.model.message_model import MessageModel as Message
+from domain.model.user_model import UserModel as User
 
 
 class UserFeedback(abc.ABC):
@@ -62,10 +62,11 @@ class ReplyUserFeedback(UserFeedback):
 
 
 class MessageUserFeedback(UserFeedback):
-    def __init__(self, text: str, action_time: datetime, user: User):
+    def __init__(self, user: User, action_time: datetime, text: str, message: Message = None):
         self.action_time = action_time
         self.text = text
         self.__user = user
+        self.__message = message
 
     def accept(self, visitor: UserFeedbackVisitor):
         visitor.visit_message(self)
@@ -76,7 +77,7 @@ class MessageUserFeedback(UserFeedback):
 
     @property
     def message(self) -> Optional[Message]:
-        return None
+        return self.__message
 
 
 class UserFeedbackVisitor(abc.ABC):

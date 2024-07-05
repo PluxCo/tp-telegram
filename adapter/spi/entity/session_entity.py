@@ -6,8 +6,8 @@ from datetime import datetime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.service import Service
-from core.user import User
+from adapter.spi.entity.service_entity import ServiceEntity
+from adapter.spi.entity.user_entity import UserEntity
 from db_connector import SqlAlchemyBase
 from domain.model.session_model import SessionState, Session
 
@@ -22,8 +22,8 @@ class SessionEntity(SqlAlchemyBase):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     service_id: Mapped[str] = mapped_column(ForeignKey('services.id'))
 
-    user: Mapped[User] = relationship(lazy="joined")
-    service: Mapped[Service] = relationship(lazy="joined")
+    user: Mapped[UserEntity] = relationship(lazy="joined")
+    service: Mapped[ServiceEntity] = relationship(lazy="joined")
     state: Mapped[SessionState] = mapped_column(default=SessionState.OPEN)
 
     open_time: Mapped[datetime]
